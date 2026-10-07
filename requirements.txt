@@ -24,4 +24,6 @@ numpy>=1.26,<3
 # requests floor raised above 2.31 to include CVE-2024-35195 fixes.
 requests>=2.32,<3
 python-whois>=0.9,<1
-beautifulsoup4>=4.12,<5
+# NOTE: beautifulsoup4 was removed here because nothing imports it any more
+# (the dead Alexa lookup that used it is gone). It returns with the page
+# intelligence milestone (P7).
