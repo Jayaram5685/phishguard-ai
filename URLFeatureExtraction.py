@@ -1,16 +1,15 @@
-# -*- coding: utf-8 -*-
 
 # importing required packages for this section
-from urllib.parse import urlparse,urlencode
 import ipaddress
 import re
+from urllib.parse import urlparse
 
 """#### **3.1.1. Domain of the URL**
 Here, we are just extracting the domain present in the URL. This feature doesn't have much significance in the training. May even be dropped while training the model.
 """
 '''
-# 1.Domain of the URL (Domain) 
-def getDomain(url):  
+# 1.Domain of the URL (Domain)
+def getDomain(url):
   domain = urlparse(url).netloc
   if re.match(r"^www.",domain):
 	       domain = domain.replace("www.","")
@@ -34,7 +33,7 @@ def havingIP(url):
 
 """#### **3.1.3. "@" Symbol in URL**
 
-Checks for the presence of '@' symbol in the URL. Using “@” symbol in the URL leads the browser to ignore everything preceding the “@” symbol and the real address often follows the “@” symbol. 
+Checks for the presence of '@' symbol in the URL. Using “@” symbol in the URL leads the browser to ignore everything preceding the “@” symbol and the real address often follows the “@” symbol.
 
 If the URL has '@' symbol, the value assigned to this feature is 1 (phishing) or else 0 (legitimate).
 """
@@ -42,9 +41,9 @@ If the URL has '@' symbol, the value assigned to this feature is 1 (phishing) or
 # 3.Checks the presence of @ in URL (Have_At)
 def haveAtSign(url):
   if "@" in url:
-    at = 1    
+    at = 1
   else:
-    at = 0    
+    at = 0
   return at
 
 """#### **3.1.4. Length of URL**
@@ -57,9 +56,9 @@ If the length of URL >= 54 , the value assigned to this feature is 1 (phishing) 
 # 4.Finding the length of URL and categorizing (URL_Length)
 def getLength(url):
   if len(url) < 54:
-    length = 0            
+    length = 0
   else:
-    length = 1            
+    length = 1
   return length
 
 """#### **3.1.5. Depth of URL**
@@ -113,7 +112,7 @@ def httpDomain(url):
 
 """#### **3.1.8. Using URL Shortening Services “TinyURL”**
 
-URL shortening is a method on the “World Wide Web” in which a URL may be made considerably smaller in length and still lead to the required webpage. This is accomplished by means of an “HTTP Redirect” on a domain name that is short, which links to the webpage that has a long URL. 
+URL shortening is a method on the “World Wide Web” in which a URL may be made considerably smaller in length and still lead to the required webpage. This is accomplished by means of an “HTTP Redirect” on a domain name that is short, which links to the webpage that has a long URL.
 
 If the URL is using Shortening Services, the value assigned to this feature is 1 (phishing) or else 0 (legitimate).
 """
@@ -138,7 +137,7 @@ def tinyURL(url):
 
 """#### **3.1.9. Prefix or Suffix "-" in Domain**
 
-Checking the presence of '-' in the domain part of URL. The dash symbol is rarely used in legitimate URLs. Phishers tend to add prefixes or suffixes separated by (-) to the domain name so that users feel that they are dealing with a legitimate webpage. 
+Checking the presence of '-' in the domain part of URL. The dash symbol is rarely used in legitimate URLs. Phishers tend to add prefixes or suffixes separated by (-) to the domain name so that users feel that they are dealing with a legitimate webpage.
 
 If the URL has '-' symbol in the domain part of the URL, the value assigned to this feature is 1 (phishing) or else 0 (legitimate).
 """
@@ -155,7 +154,7 @@ def prefixSuffix(url):
 Many features can be extracted that come under this category. Out of them, below mentioned were considered for this project.
 
 *   DNS Record
-*   Website Traffic 
+*   Website Traffic
 *   Age of Domain
 *   End Period of Domain
 
@@ -165,13 +164,13 @@ Each of these features are explained and the coded below:
 #!pip install python-whois
 
 # importing required packages for this section
-import re
-from bs4 import BeautifulSoup
-import whois
 import socket
 import urllib
 import urllib.request
 from datetime import datetime
+
+import whois
+from bs4 import BeautifulSoup
 
 # Set default timeout for socket operations (like WHOIS lookups) to prevent hanging
 socket.setdefaulttimeout(3)
@@ -179,7 +178,7 @@ socket.setdefaulttimeout(3)
 
 """#### **3.2.1. DNS Record**
 
-For phishing websites, either the claimed identity is not recognized by the WHOIS database or no records founded for the hostname. 
+For phishing websites, either the claimed identity is not recognized by the WHOIS database or no records founded for the hostname.
 If the DNS record is empty or not found then, the value assigned to this feature is 1 (phishing) or else 0 (legitimate).
 """
 
@@ -216,7 +215,7 @@ This feature can be extracted from WHOIS database. Most phishing websites live f
 If age of domain > 12 months, the vlaue of this feature is 1 (phishing) else 0 (legitimate).
 """
 
-# 13.Survival time of domain: The difference between termination time and creation time (Domain_Age)  
+# 13.Survival time of domain: The difference between termination time and creation time (Domain_Age)
 def domainAge(domain_name):
   try:
     creation_date = domain_name.creation_date
@@ -243,12 +242,12 @@ def domainAge(domain_name):
 
 """#### **3.2.4. End Period of Domain**
 
-This feature can be extracted from WHOIS database. For this feature, the remaining domain time is calculated by finding the different between expiration time & current time. The end period considered for the legitimate domain is 6 months or less  for this project. 
+This feature can be extracted from WHOIS database. For this feature, the remaining domain time is calculated by finding the different between expiration time & current time. The end period considered for the legitimate domain is 6 months or less  for this project.
 
 If end period of domain > 6 months, the vlaue of this feature is 1 (phishing) else 0 (legitimate).
 """
 
-# 14.End time of domain: The difference between termination time and current time (Domain_End) 
+# 14.End time of domain: The difference between termination time and current time (Domain_End)
 def domainEnd(domain_name):
   try:
     expiration_date = domain_name.expiration_date
@@ -289,7 +288,7 @@ import requests
 
 """### **3.3.1. IFrame Redirection**
 
-IFrame is an HTML tag used to display an additional webpage into one that is currently shown. Phishers can make use of the “iframe” tag and make it invisible i.e. without frame borders. In this regard, phishers make use of the “frameBorder” attribute which causes the browser to render a visual delineation. 
+IFrame is an HTML tag used to display an additional webpage into one that is currently shown. Phishers can make use of the “iframe” tag and make it invisible i.e. without frame borders. In this regard, phishers make use of the “frameBorder” attribute which causes the browser to render a visual delineation.
 
 If the iframe is empty or repsonse is not found then, the value assigned to this feature is 1 (phishing) or else 0 (legitimate).
 """
@@ -312,7 +311,7 @@ If the response is empty or onmouseover is found then, the value assigned to thi
 """
 
 # 16.Checks the effect of mouse over on status bar (Mouse_Over)
-def mouseOver(response): 
+def mouseOver(response):
   if response == "" :
     return 1
   else:
@@ -342,7 +341,7 @@ def rightClick(response):
 The fine line that distinguishes phishing websites from legitimate ones is how many times a website has been redirected. In our dataset, we find that legitimate websites have been redirected one time max. On the other hand, phishing websites containing this feature have been redirected at least 4 times.
 """
 
-# 18.Checks the number of forwardings (Web_Forwards)    
+# 18.Checks the number of forwardings (Web_Forwards)
 def forwarding(response):
   if response == "":
     return 1
@@ -371,7 +370,7 @@ def featureExtraction(url):
   features.append(httpDomain(url))
   features.append(tinyURL(url))
   features.append(prefixSuffix(url))
-  
+
   #Domain based features (4)
   dns = 0
   try:
@@ -383,7 +382,7 @@ def featureExtraction(url):
   features.append(web_traffic(url))
   features.append(1 if dns == 1 else domainAge(domain_name))
   features.append(1 if dns == 1 else domainEnd(domain_name))
-  
+
   # HTML & Javascript based features
   try:
     response = requests.get(url, timeout=5)
@@ -395,11 +394,11 @@ def featureExtraction(url):
   features.append(mouseOver(response))
   features.append(rightClick(response))
   features.append(forwarding(response))
-  
+
   return features
 
 #converting the list to dataframe
-feature_names = ['Domain', 'Have_IP', 'Have_At', 'URL_Length', 'URL_Depth','Redirection', 
-                      'https_Domain', 'TinyURL', 'Prefix/Suffix', 'DNS_Record', 'Web_Traffic', 
+feature_names = ['Domain', 'Have_IP', 'Have_At', 'URL_Length', 'URL_Depth','Redirection',
+                      'https_Domain', 'TinyURL', 'Prefix/Suffix', 'DNS_Record', 'Web_Traffic',
                       'Domain_Age', 'Domain_End', 'iFrame', 'Mouse_Over','Right_Click', 'Web_Forwards', 'Label']
 

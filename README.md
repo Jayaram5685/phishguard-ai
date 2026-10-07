@@ -1,6 +1,14 @@
-# Phishing Detection Chrome Extension & AI Server
+# PhishGuard AI — Phishing Detection Chrome Extension & API
+
+> **Detect. Explain. Protect.**
 
 An AI-powered web security system that detects phishing websites in real-time. The project consists of a modern, lightweight Google Chrome Extension that communicates with a Flask-based backend server. The backend runs feature extraction on the scanned URL and queries a tuned Machine Learning classifier to output a prediction ("Safe" vs. "Phishing").
+
+> **Status — milestone P0 (repository bootstrap).** This README is the legacy
+> upstream document. It is being replaced as part of the PhishGuard AI
+> rebuild; numbers inherited from upstream are labelled `UNVERIFIED` until the
+> reproducible evaluation framework lands. See [`models/MODEL_CARD.md`](models/MODEL_CARD.md)
+> and [`DataFiles/DATASETS.md`](DataFiles/DATASETS.md).
 
 ---
 
@@ -52,22 +60,30 @@ When a URL is scanned, the backend extracts **16 key features** categorized into
 
 ## 📊 Machine Learning Models & Dataset
 
-The models are trained on a balanced dataset of **10,000 URLs** (5,000 legitimate URLs sourced from Alexa rankings and 5,000 phishing URLs sourced from active PhishTank feeds) using 16 extracted feature columns.
+The models are trained on a balanced dataset of **10,000 URLs** (5,000 legitimate URLs and 5,000 phishing URLs sourced from PhishTank feeds) using 16 extracted feature columns.
 
-We optimized and trained two classifiers:
-* **Tuned Random Forest Classifier** (500 Estimators): **85.95% Accuracy** *(Primary model used in the API)*
-* **Tuned XGBoost Classifier** (`n_estimators=500`, `max_depth=8`): **85.70% Accuracy**
+Two classifiers are shipped in [`models/`](models/):
+
+* **Random Forest** (500 estimators) — `models/random_forest.joblib` *(primary model used by the API)*
+* **XGBoost** (`n_estimators=500`, `max_depth=8`) — `models/xgboost.joblib`
+
+> ⚠️ **Metrics are UNVERIFIED.** Upstream quoted 85.95% / 85.70% accuracy from a
+> single random split of a dataset containing only 771 unique feature vectors
+> across 10,000 rows — i.e. heavy train/test leakage. Those figures are
+> recorded for traceability in [`models/MODEL_CARD.md`](models/MODEL_CARD.md)
+> and are **not** claims of detection quality. Leakage-free, domain-disjoint
+> evaluation is tracked as milestone P2/P8.
 
 ---
 
 ## 🚀 Setup and Run Guide
 
 ### 1. Run the Flask Backend
-Make sure you have Python 3.8+ installed.
+Make sure you have Python 3.11+ installed (CI tests 3.11 / 3.12 / 3.13).
 
 1. Navigate to the project root folder:
    ```bash
-   cd Phishing-detection-extension-main
+   cd phishguard-ai
    ```
 2. Create and activate a virtual environment:
    ```bash
@@ -79,13 +95,21 @@ Make sure you have Python 3.8+ installed.
    ```
 3. Install the dependencies:
    ```bash
-   pip install -r requirements.txt
+   pip install -r requirements.txt        # runtime
+   pip install -r requirements-dev.txt    # + pytest, ruff (development)
    ```
 4. Start the Flask server:
    ```bash
    python app.py
    ```
    The API will now be running locally at `http://127.0.0.1:5000/`.
+   Verify with `curl http://127.0.0.1:5000/health`.
+
+5. Run the test suite (offline):
+   ```bash
+   pytest -m "not network"
+   ruff check .
+   ```
 
 ---
 
@@ -104,11 +128,11 @@ Make sure you have Python 3.8+ installed.
 
 To host the API server in production (e.g., on [Render](https://render.com/) or Heroku):
 
-1. Deploy the backend using the included [`render.yaml`](file:///c:/Users/saipr/OneDrive/Desktop/Phishing-detection-extension-main/Phishing-detection-extension-main/render.yaml) blueprint or by binding the server to a Gunicorn start command:
+1. Deploy the backend using the included [`render.yaml`](render.yaml) blueprint or by binding the server to a Gunicorn start command:
    ```bash
    gunicorn app:app
    ```
-2. Update the `API_URL` variable inside the Chrome Extension's [`popup.js`](file:///c:/Users/saipr/OneDrive/Desktop/Phishing-detection-extension-main/Phishing-detection-extension-main/Phishing_detection_app/chrome_extension/popup.js):
+2. Update the `API_URL` variable inside the Chrome Extension's [`popup.js`](Phishing_detection_app/chrome_extension/popup.js):
    ```javascript
    // Replace localhost with your production server URL
    const API_URL = 'https://your-phishing-detection-api.onrender.com/predict';
@@ -118,9 +142,10 @@ To host the API server in production (e.g., on [Render](https://render.com/) or 
 
 ## 📁 File Structure
 
-* [`app.py`](file:///c:/Users/saipr/OneDrive/Desktop/Phishing-detection-extension-main/Phishing-detection-extension-main/app.py) - Flask web API exposing `/predict` endpoint.
-* [`URLFeatureExtraction.py`](file:///c:/Users/saipr/OneDrive/Desktop/Phishing-detection-extension-main/Phishing-detection-extension-main/URLFeatureExtraction.py) - Main feature extraction module parsing syntax, WHOIS, and page structures.
-* [`train_model.py`](file:///c:/Users/saipr/OneDrive/Desktop/Phishing-detection-extension-main/Phishing-detection-extension-main/train_model.py) - Machine learning pipeline training the RF and XGBoost classifiers.
-* [`xg_boost.pkl`](file:///c:/Users/saipr/OneDrive/Desktop/Phishing-detection-extension-main/Phishing-detection-extension-main/xg_boost.pkl) - Saved high-accuracy Random Forest classifier loaded by the Flask API.
-* [`Phishing_detection_app/chrome_extension/`](file:///c:/Users/saipr/OneDrive/Desktop/Phishing-detection-extension-main/Phishing-detection-extension-main/Phishing_detection_app/chrome_extension/) - Chrome Extension assets (`manifest.json`, `popup.html`, `popup.js`).
-* [`DataFiles/`](file:///c:/Users/saipr/OneDrive/Desktop/Phishing-detection-extension-main/Phishing-detection-extension-main/DataFiles/) - Dataset storage containing CSV files (legitimate list, phishing list, and the 10,000-row combined training set).
+* [`app.py`](app.py) - Flask web API exposing `/predict` and `/health`.
+* [`URLFeatureExtraction.py`](URLFeatureExtraction.py) - Legacy feature extraction module (URL syntax, WHOIS, page structure). Being replaced by a single unified pipeline in milestone P2.
+* [`train_model.py`](train_model.py) - Training script; writes explicitly named artifacts to `models/`.
+* [`models/`](models/) - Model registry: `random_forest.joblib`, `xgboost.joblib`, `registry.json`, and [`MODEL_CARD.md`](models/MODEL_CARD.md) (provenance, schema, known limitations).
+* [`tests/`](tests/) - Offline test suite (registry integrity, API smoke, lexical features).
+* [`Phishing_detection_app/chrome_extension/`](Phishing_detection_app/chrome_extension/) - Chrome Extension assets (`manifest.json`, `popup.html`, `popup.js`).
+* [`DataFiles/`](DataFiles/) - Dataset CSVs plus [`DATASETS.md`](DataFiles/DATASETS.md) (measured statistics, provenance, known leakage).

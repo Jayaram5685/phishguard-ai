@@ -1,9 +1,10 @@
 services:
   - type: web
-    name: phishing-detection-api
+    name: phishguard-api
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn app:app"
+    startCommand: "gunicorn --workers 2 --threads 4 --timeout 30 app:app"
+    healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
-        value: "3.10.13"
+        value: "3.12.10"

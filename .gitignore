@@ -8,6 +8,8 @@ __pycache__/
 
 # Environments
 .env
+.env.*
+!.env.example
 .venv
 env/
 venv/
@@ -20,3 +22,16 @@ ENV/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Test / lint tooling
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# Model artifacts must be joblib files registered in models/registry.json.
+# Legacy ambiguous pickles are banned (see models/MODEL_CARD.md).
+*.pkl
