@@ -165,12 +165,12 @@ Each of these features are explained and the coded below:
 
 # importing required packages for this section
 import socket
-import urllib
-import urllib.request
 from datetime import datetime
 
 import whois
-from bs4 import BeautifulSoup
+
+from phishguard.security.fetch import safe_fetch
+from phishguard.security.ssrf import is_public_domain_candidate
 
 # Set default timeout for socket operations (like WHOIS lookups) to prevent hanging
 socket.setdefaulttimeout(3)
@@ -194,18 +194,19 @@ If the rank of the domain < 100000, the vlaue of this feature is 1 (phishing) el
 
 # 12.Web traffic (Web_Traffic)
 def web_traffic(url):
-  try:
-    #Filling the whitespaces in the URL if any
-    url = urllib.parse.quote(url)
-    rank = BeautifulSoup(urllib.request.urlopen("http://data.alexa.com/data?cli=10&dat=s&url=" + url).read(), "xml").find(
-        "REACH")['RANK']
-    rank = int(rank)
-  except Exception:
-        return 1
-  if rank <100000:
-    return 1
-  else:
-    return 0
+  """DEGENERATE FEATURE -- Alexa Internet was discontinued in 2022.
+
+  The legacy implementation queried ``http://data.alexa.com/data?...``. That
+  endpoint no longer exists, so every call raised and this function returned
+  1; it also leaked a third-party request on every scan. The constant below
+  reproduces the previous *effective* behaviour with no network call, so the
+  16-feature contract expected by the shipped models is preserved.
+
+  The pipeline rewrite (milestone P2) either replaces this signal with a
+  maintained popularity/reputation source or removes the column entirely --
+  no fake popularity values are ever fabricated in the meantime.
+  """
+  return 1
 
 
 """#### **3.2.3. Age of Domain**
@@ -283,9 +284,6 @@ Many features can be extracted that come under this category. Out of them, below
 Each of these features are explained and the coded below:
 """
 
-# importing required packages for this section
-import requests
-
 """### **3.3.1. IFrame Redirection**
 
 IFrame is an HTML tag used to display an additional webpage into one that is currently shown. Phishers can make use of the “iframe” tag and make it invisible i.e. without frame borders. In this regard, phishers make use of the “frameBorder” attribute which causes the browser to render a visual delineation.
@@ -358,6 +356,13 @@ Create a list and a function that calls the other functions and stores all the f
 
 #Function to extract features
 def featureExtraction(url):
+  """Extract the legacy 16-feature vector for ``url``.
+
+  Outbound operations (WHOIS, page fetch) are SSRF-guarded: internal hosts,
+  IP literals in private ranges, metadata endpoints and non-http(s) schemes
+  never produce a network request. Blocked or failed lookups degrade to the
+  same "no intelligence" values the legacy code produced on timeout.
+  """
 
   features = []
   #Address bar based features (10)
@@ -372,23 +377,29 @@ def featureExtraction(url):
   features.append(prefixSuffix(url))
 
   #Domain based features (4)
+  hostname = urlparse(url).hostname or ''
   dns = 0
-  try:
-    domain_name = whois.whois(urlparse(url).netloc)
-  except:
+  domain_name = None
+  if not is_public_domain_candidate(hostname):
+    # Internal host, IP literal or malformed name: no WHOIS intelligence.
     dns = 1
+  else:
+    try:
+      # Pass the hostname only -- never the full URL, which may embed
+      # credentials in the userinfo section.
+      domain_name = whois.whois(hostname)
+    except Exception:
+      dns = 1
 
   features.append(dns)
   features.append(web_traffic(url))
   features.append(1 if dns == 1 else domainAge(domain_name))
   features.append(1 if dns == 1 else domainEnd(domain_name))
 
-  # HTML & Javascript based features
-  try:
-    response = requests.get(url, timeout=5)
-  except:
+  # HTML & Javascript based features (SSRF-guarded, redirects re-validated)
+  response = safe_fetch(url)
+  if response is None:
     response = ""
-
 
   features.append(iframe(response))
   features.append(mouseOver(response))
@@ -396,9 +407,4 @@ def featureExtraction(url):
   features.append(forwarding(response))
 
   return features
-
-#converting the list to dataframe
-feature_names = ['Domain', 'Have_IP', 'Have_At', 'URL_Length', 'URL_Depth','Redirection',
-                      'https_Domain', 'TinyURL', 'Prefix/Suffix', 'DNS_Record', 'Web_Traffic',
-                      'Domain_Age', 'Domain_End', 'iFrame', 'Mouse_Over','Right_Click', 'Web_Forwards', 'Label']
 
