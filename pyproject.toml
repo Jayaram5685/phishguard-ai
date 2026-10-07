@@ -1,0 +1,40 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [
+    "*.ipynb",
+    "DataFiles",
+    "models",
+]
+
+[tool.ruff.lint]
+select = [
+    "E4",   # import errors
+    "E7",   # statement errors
+    "E9",   # runtime errors
+    "F",    # pyflakes
+    "W",    # warnings
+    "I",    # import sorting
+    "B",    # bugbear
+    "C4",   # comprehensions
+    "UP",   # pyupgrade
+]
+ignore = [
+    "B008",   # function calls in default args (Flask route decorators)
+    "SIM105", # contextlib.suppress preference
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Legacy extraction module: rewritten behind a tested interface in milestone P2.
+"URLFeatureExtraction.py" = ["E722", "B904", "E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+markers = [
+    "network: tests that require outbound network access (deselected by default in CI)",
+]
+filterwarnings = [
+    # Emitted by joblib when deserialising the legacy artifacts under NumPy >= 2.5.
+    "ignore:Setting the shape on a NumPy array has been deprecated:DeprecationWarning:joblib.*",
+]

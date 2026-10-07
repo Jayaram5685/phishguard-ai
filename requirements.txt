@@ -1,8 +1,26 @@
-Flask==3.0.3
-flask-cors==4.0.1
-pandas
-scikit-learn
-xgboost
-gunicorn==22.0.0
-numpy>=2.0.0
-requests==2.31.0
+# PhishGuard AI — runtime dependencies
+# Supported Python: 3.11 – 3.14 (CI runs 3.11 / 3.12 / 3.13)
+# Pinned as ranges: reproducible enough for a small surface, loose enough
+# to install across supported interpreters. Exact lock: requirements-dev.txt.
+
+# --- Web API ---
+Flask>=3.0,<4
+flask-cors>=4.0,<6
+gunicorn>=22,<24
+
+# --- ML / model serialization ---
+# scikit-learn floor matches the version the shipped artifacts were trained with.
+scikit-learn>=1.7.2,<2
+xgboost>=2.1,<4
+lightgbm>=4.3,<5
+joblib>=1.4,<2
+
+# --- Data ---
+pandas>=2.2,<4
+numpy>=1.26,<3
+
+# --- Network / extraction ---
+# requests floor raised above 2.31 to include CVE-2024-35195 fixes.
+requests>=2.32,<3
+python-whois>=0.9,<1
+beautifulsoup4>=4.12,<5
