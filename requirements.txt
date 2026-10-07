@@ -5,7 +5,8 @@
 
 # --- Web API ---
 Flask>=3.0,<4
-flask-cors>=4.0,<6
+# flask-cors floor 6.0.0 clears PYSEC-2026-1383/1384/1385 (flagged by pip-audit in CI).
+flask-cors>=6.0,<7
 gunicorn>=22,<24
 
 # --- ML / model serialization ---
