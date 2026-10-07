@@ -1,15 +1,17 @@
 import os
+
+import joblib
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import accuracy_score
 import xgboost as xgb
-import pickle
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
 # Define the path to the data file
 current_dir = os.path.dirname(os.path.abspath(__file__))
 data_file_path = os.path.join(current_dir, 'DataFiles', '5.urldata.csv')
+model_dir = os.path.join(current_dir, 'models')
 
 # Load the dataset
 data = pd.read_csv(data_file_path)
@@ -32,21 +34,29 @@ X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
+print(
+    'WARNING: this is the legacy random split. The dataset contains massive '
+    'near-duplicate overlap between train and test (see models/MODEL_CARD.md), '
+    'so the metrics below measure memorisation, not generalisation. '
+    'The domain-disjoint protocol lands in milestone P2/P8.'
+)
+
+
+def report(name: str, y_true, y_pred) -> None:
+    precision, recall, f1, _ = precision_recall_fscore_support(
+        y_true, y_pred, average='binary', zero_division=0
+    )
+    print(
+        f'{name}: accuracy={accuracy_score(y_true, y_pred) * 100:.2f}% '
+        f'precision={precision:.4f} recall={recall:.4f} f1={f1:.4f}'
+    )
+
+
 # Train a Tuned Random Forest model
 print("Training Tuned Random Forest model...")
 rf_model = RandomForestClassifier(n_estimators=500, random_state=42)
 rf_model.fit(X_train, y_train)
-
-# Evaluate the Random Forest model
-rf_pred = rf_model.predict(X_test)
-rf_accuracy = accuracy_score(y_test, rf_pred)
-print(f'Random Forest Accuracy: {rf_accuracy * 100:.2f}%')
-
-# Save the Random Forest model to both random_forest_model.pkl and xg_boost.pkl (for backward compatibility)
-with open(os.path.join(current_dir, 'random_forest_model.pkl'), 'wb') as file:
-    pickle.dump(rf_model, file)
-with open(os.path.join(current_dir, 'xg_boost.pkl'), 'wb') as file:
-    pickle.dump(rf_model, file)
+report('Random Forest', y_test, rf_model.predict(X_test))
 
 # Train a real, tuned XGBoost model
 print("Training Tuned XGBoost model...")
@@ -60,13 +70,11 @@ xgb_model = xgb.XGBClassifier(
     eval_metric='logloss'
 )
 xgb_model.fit(X_train, y_train)
+report('XGBoost', y_test, xgb_model.predict(X_test))
 
-# Evaluate the XGBoost model
-xgb_pred = xgb_model.predict(X_test)
-xgb_accuracy = accuracy_score(y_test, xgb_pred)
-print(f'XGBoost Accuracy: {xgb_accuracy * 100:.2f}%')
-
-# Save the XGBoost model
-with open(os.path.join(current_dir, 'xgboost_model.pkl'), 'wb') as file:
-    pickle.dump(xgb_model, file)
-
+# Save with explicit, honest names. One artifact per algorithm — upstream used
+# to write the Random Forest to a file called "xg_boost.pkl".
+os.makedirs(model_dir, exist_ok=True)
+joblib.dump(rf_model, os.path.join(model_dir, 'random_forest.joblib'))
+joblib.dump(xgb_model, os.path.join(model_dir, 'xgboost.joblib'))
+print(f'Saved models to {model_dir}')

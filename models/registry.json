@@ -1,0 +1,79 @@
+{
+  "random_forest.joblib": {
+    "algorithm": "RandomForestClassifier",
+    "source_artifact": "xg_boost.pkl",
+    "source_sha256": "6494ecfa8870b852591f00dcbede03a336dd58cc4cb53ac633bd4d1d3b3223fd",
+    "artifact_sha256": "e8dd5405e647ed03fc0538327dbe4f5a65ffea228e2eb9c069165a0dca7083b7",
+    "trained_with": {
+      "scikit_learn": "1.7.2",
+      "scikit_learn_evidence": "InconsistentVersionWarning emitted when loading the source pickle (estimator pickle state declares 1.7.2)",
+      "n_estimators": 500
+    },
+    "feature_columns": [
+      "Have_IP",
+      "Have_At",
+      "URL_Length",
+      "URL_Depth",
+      "Redirection",
+      "https_Domain",
+      "TinyURL",
+      "Prefix/Suffix",
+      "DNS_Record",
+      "Web_Traffic",
+      "Domain_Age",
+      "Domain_End",
+      "iFrame",
+      "Mouse_Over",
+      "Right_Click",
+      "Web_Forwards"
+    ],
+    "dataset": "DataFiles/5.urldata.csv",
+    "split": "random 80/20, random_state=42 (LEAKED \u2014 see models/MODEL_CARD.md)",
+    "migrated_utc": "2026-10-07T04:04:17+00:00",
+    "parity_verified": true,
+    "label_semantics": {
+      "0": "legitimate",
+      "1": "phishing"
+    },
+    "status": "legacy-baseline (replaced by retrained model in milestone P2 \u2014 metrics from this artifact are leaked and must not be quoted)"
+  },
+  "xgboost.joblib": {
+    "algorithm": "XGBClassifier",
+    "source_artifact": "xgboost_model.pkl",
+    "source_sha256": "2c5d46be700f18033e84b96507c1d5d52059bf50b48f4705d1fbd2043ba2cc92",
+    "artifact_sha256": "67017f56dce4bb38cd9d4ae03bf9221e970d55a80d2d7dcb95206a0674737ce8",
+    "trained_with": {
+      "xgboost": "unknown",
+      "xgboost_evidence": "not recoverable from artifact; recorded as unknown rather than guessed",
+      "n_estimators": 500,
+      "hyperparameters": "n_estimators=500, max_depth=8, learning_rate=0.02, subsample=0.8, colsample_bytree=0.8, random_state=42 (see train_model.py)"
+    },
+    "feature_columns": [
+      "Have_IP",
+      "Have_At",
+      "URL_Length",
+      "URL_Depth",
+      "Redirection",
+      "https_Domain",
+      "TinyURL",
+      "Prefix/Suffix",
+      "DNS_Record",
+      "Web_Traffic",
+      "Domain_Age",
+      "Domain_End",
+      "iFrame",
+      "Mouse_Over",
+      "Right_Click",
+      "Web_Forwards"
+    ],
+    "dataset": "DataFiles/5.urldata.csv",
+    "split": "random 80/20, random_state=42 (LEAKED \u2014 see models/MODEL_CARD.md)",
+    "migrated_utc": "2026-10-07T04:04:18+00:00",
+    "parity_verified": true,
+    "label_semantics": {
+      "0": "legitimate",
+      "1": "phishing"
+    },
+    "status": "legacy-baseline (replaced by retrained model in milestone P2 \u2014 metrics from this artifact are leaked and must not be quoted)"
+  }
+}
