@@ -173,6 +173,12 @@ def _harden_response(response):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["Cache-Control"] = "no-store"
+    # The API emits JSON only; a permissive CSP is never needed, and
+    # default-src 'none' also forbids it ever being framed or fetched by
+    # another origin in a browser context.
+    response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
 
     if request.method != "OPTIONS":
         started = getattr(g, "started_at", None)

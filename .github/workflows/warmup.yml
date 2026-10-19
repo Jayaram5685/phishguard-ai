@@ -1,0 +1,23 @@
+name: Keep-alive
+
+# The Render Free instance sleeps after ~15 min without requests, so the first
+# user request pays a ~50 s cold start. Pinging /health on a short schedule
+# keeps it warm. Public repos get unlimited Actions minutes; each ping is a
+# single HTTP call costing a few seconds.
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Wake the API
+        run: |
+          code=$(curl -sS -o /tmp/health.json -w "%{http_code}" \
+            --max-time 90 "https://phishguard-api-ttou.onrender.com/health" || true)
+          echo "health -> $code"
+          cat /tmp/health.json || true
+          test "$code" = "200"

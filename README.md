@@ -13,6 +13,34 @@ domain-disjoint evaluation. Every metric quoted below was reproduced from this
 repository — see [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md) for the protocol
 and [`docs/threat-model.md`](docs/threat-model.md) for the security posture.
 
+## Live API
+
+| | |
+|---|---|
+| Base URL | `https://phishguard-api-ttou.onrender.com` |
+| Health | [`/health`](https://phishguard-api-ttou.onrender.com/health) |
+| Deploy | Render Blueprint ([`render.yaml`](render.yaml)), auto-deployed from `main`, free instance |
+
+```bash
+curl -s https://phishguard-api-ttou.onrender.com/predict \
+  -H 'Content-Type: application/json' \
+  -d '{"url":"http://secure-paypal-verify.account-check.top/signin"}'
+# {"model":"random_forest.joblib","prediction":1,"score":1.0,"reasons":[...]}
+```
+
+Two operational notes for the free instance: it **sleeps after ~15 minutes** of
+inactivity (first request then pays a ~50 s cold start — a `.github/workflows/warmup.yml`
+schedule pings `/health` to keep it warm), and it is sized at 512 MB / 0.1 CPU,
+which is why the blueprint runs a single gunicorn worker with
+`MODEL_NAME=lightgbm.joblib` as the drop-in lever if latency ever matters.
+
+End-to-end verification against a deployment:
+
+```bash
+PHISHGUARD_LIVE_URL=https://phishguard-api-ttou.onrender.com \
+  python -m pytest tests/test_live_api.py -v
+```
+
 ---
 
 ## How it works
@@ -122,9 +150,13 @@ rebuilding the extension (open the service worker console or any extension
 page):
 
 ```javascript
-chrome.storage.local.set({ apiUrl: "https://your-api.example/predict",
-                           apiKey: "your-api-key" });
+chrome.storage.local.set({ apiUrl: "https://phishguard-api-ttou.onrender.com/predict" });
 ```
+
+Point it at a local server (`http://127.0.0.1:5000/predict`) or your own
+deployment instead; add `apiKey: "…"` if the server sets `API_KEY`. That
+configuration is the only thing the extension persists — never page contents or
+history.
 
 A verdict shows the hard label, the model's phishing score, and up to four
 reasons. Errors, timeouts, 401s and rate limits render as **"Could not

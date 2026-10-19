@@ -114,6 +114,15 @@ def test_security_headers_present(client):
     assert response.headers["X-Frame-Options"] == "DENY"
     assert response.headers["Referrer-Policy"] == "no-referrer"
     assert response.headers["Cache-Control"] == "no-store"
+    assert (
+        response.headers["Content-Security-Policy"]
+        == "default-src 'none'; frame-ancestors 'none'"
+    )
+    assert (
+        response.headers["Strict-Transport-Security"]
+        == "max-age=31536000; includeSubDomains"
+    )
+    assert "camera=()" in response.headers["Permissions-Policy"]
 
 
 def test_request_id_is_returned_and_attached_to_errors(client):
