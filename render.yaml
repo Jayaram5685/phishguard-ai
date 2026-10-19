@@ -8,3 +8,8 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.10"
+      # Render terminates TLS and forwards the real client IP in
+      # X-Forwarded-For; the app is never directly exposed behind the router,
+      # so trusting the first hop keeps per-client rate limiting accurate.
+      - key: TRUST_PROXY
+        value: "1"
