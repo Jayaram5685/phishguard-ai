@@ -1,0 +1,1713 @@
+{
+  "metrics_schema": "metrics-v1",
+  "feature_schema_version": "features-v2",
+  "feature_schema_fingerprint": "f0099fbf914b0fe900ef1e14f42db8c86333362f7942a93830c3e2ab2ec84b52",
+  "seed": 42,
+  "test_fraction": 0.2,
+  "generated_by": "python train_model.py --seed 42",
+  "dataset": {
+    "path": "DataFiles\\5.urldata.csv",
+    "sha256": "5c74254ce576a730beaea2ed15c3acbfd7e02dad853b552d248b5af5a034b188",
+    "rows": 10000,
+    "columns": 18,
+    "rows_unique": 4374,
+    "label_counts": {
+      "0": 5000,
+      "1": 5000
+    },
+    "unique_domains": 3553,
+    "unique_feature_vectors": 581,
+    "conflicting_vectors": 94,
+    "rows_in_conflicting_vectors": 6593,
+    "mixed_label_domains": 3,
+    "deduplicated_rows": 4374,
+    "deduplicated_label_counts": {
+      "0": 529,
+      "1": 3845
+    },
+    "nulls": 0,
+    "rows_training_pool": 4366,
+    "mixed_label_rows_dropped": 8
+  },
+  "split_info": {
+    "random": {
+      "protocol": "random",
+      "train_rows": 8000,
+      "test_rows": 2000,
+      "train_label_counts": {
+        "0": 3988,
+        "1": 4012
+      },
+      "test_label_counts": {
+        "0": 1012,
+        "1": 988
+      },
+      "test_fraction": 0.2,
+      "seed": 42,
+      "leakage": "row-level split of a dataset with massive duplicate overlap - baseline only, not a generalisation estimate"
+    },
+    "domain_disjoint": {
+      "protocol": "domain_disjoint",
+      "train_rows": 3488,
+      "test_rows": 878,
+      "train_label_counts": {
+        "0": 418,
+        "1": 3070
+      },
+      "test_label_counts": {
+        "0": 106,
+        "1": 772
+      },
+      "test_fraction": 0.2,
+      "seed": 42,
+      "train_domains": 2839,
+      "test_domains": 711,
+      "domain_overlap": 0
+    },
+    "vector_disjoint": {
+      "protocol": "vector_disjoint",
+      "train_rows": 3223,
+      "test_rows": 1143,
+      "train_label_counts": {
+        "0": 404,
+        "1": 2819
+      },
+      "test_label_counts": {
+        "0": 120,
+        "1": 1023
+      },
+      "test_fraction": 0.2,
+      "seed": 42,
+      "train_vectors": 464,
+      "test_vectors": 116,
+      "vector_overlap": 0
+    }
+  },
+  "experiments": [
+    {
+      "model": "logistic_regression",
+      "protocol": "random",
+      "feature_set": "url_domain_page",
+      "n_features": 15,
+      "train_rows": 8000,
+      "test_rows": 2000,
+      "hyperparameters": {
+        "algorithm": "LogisticRegression",
+        "C": 1.0,
+        "max_iter": 2000,
+        "class_weight": "balanced",
+        "solver": "lbfgs",
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 0.779,
+        "precision": 0.896802,
+        "recall": 0.624494,
+        "f1": 0.736277,
+        "roc_auc": 0.852877,
+        "pr_auc": 0.886625,
+        "fpr": 0.070158,
+        "fnr": 0.375506,
+        "ci95": {
+          "accuracy": [
+            0.76029,
+            0.79664
+          ],
+          "precision": [
+            0.871823,
+            0.917375
+          ],
+          "recall": [
+            0.59387,
+            0.654153
+          ],
+          "fpr": [
+            0.055993,
+            0.087574
+          ],
+          "fnr": [
+            0.345847,
+            0.40613
+          ]
+        },
+        "counts": {
+          "n_samples": 2000,
+          "n_positive": 988,
+          "n_negative": 1012,
+          "tp": 617,
+          "fp": 71,
+          "tn": 941,
+          "fn": 371
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 3.130652,
+        "p95_ms": 4.00826,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 0.284
+    },
+    {
+      "model": "random_forest",
+      "protocol": "random",
+      "feature_set": "url_domain_page",
+      "n_features": 15,
+      "train_rows": 8000,
+      "test_rows": 2000,
+      "hyperparameters": {
+        "algorithm": "RandomForestClassifier",
+        "n_estimators": 500,
+        "class_weight": "balanced",
+        "n_jobs": 1,
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 0.849,
+        "precision": 0.936387,
+        "recall": 0.744939,
+        "f1": 0.829763,
+        "roc_auc": 0.90164,
+        "pr_auc": 0.92361,
+        "fpr": 0.049407,
+        "fnr": 0.255061,
+        "ci95": {
+          "accuracy": [
+            0.83264,
+            0.864022
+          ],
+          "precision": [
+            0.917111,
+            0.951417
+          ],
+          "recall": [
+            0.716846,
+            0.771135
+          ],
+          "fpr": [
+            0.037676,
+            0.064547
+          ],
+          "fnr": [
+            0.228865,
+            0.283154
+          ]
+        },
+        "counts": {
+          "n_samples": 2000,
+          "n_positive": 988,
+          "n_negative": 1012,
+          "tp": 736,
+          "fp": 50,
+          "tn": 962,
+          "fn": 252
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 88.333732,
+        "p95_ms": 97.45614,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 4.7
+    },
+    {
+      "model": "xgboost",
+      "protocol": "random",
+      "feature_set": "url_domain_page",
+      "n_features": 15,
+      "train_rows": 8000,
+      "test_rows": 2000,
+      "hyperparameters": {
+        "algorithm": "XGBClassifier",
+        "n_estimators": 500,
+        "max_depth": 8,
+        "learning_rate": 0.02,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "tree_method": "hist",
+        "eval_metric": "logloss",
+        "nthread": 1,
+        "random_state": 42,
+        "scale_pos_weight": 0.994018
+      },
+      "metrics": {
+        "accuracy": 0.8475,
+        "precision": 0.938383,
+        "recall": 0.739879,
+        "f1": 0.827391,
+        "roc_auc": 0.902047,
+        "pr_auc": 0.923228,
+        "fpr": 0.047431,
+        "fnr": 0.260121,
+        "ci95": {
+          "accuracy": [
+            0.831079,
+            0.862589
+          ],
+          "precision": [
+            0.91925,
+            0.953213
+          ],
+          "recall": [
+            0.711631,
+            0.766268
+          ],
+          "fpr": [
+            0.035959,
+            0.062325
+          ],
+          "fnr": [
+            0.233732,
+            0.288369
+          ]
+        },
+        "counts": {
+          "n_samples": 2000,
+          "n_positive": 988,
+          "n_negative": 1012,
+          "tp": 731,
+          "fp": 48,
+          "tn": 964,
+          "fn": 257
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 9.45842,
+        "p95_ms": 13.87892,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 2.461
+    },
+    {
+      "model": "lightgbm",
+      "protocol": "random",
+      "feature_set": "url_domain_page",
+      "n_features": 15,
+      "train_rows": 8000,
+      "test_rows": 2000,
+      "hyperparameters": {
+        "algorithm": "LGBMClassifier",
+        "n_estimators": 500,
+        "learning_rate": 0.02,
+        "num_leaves": 31,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "n_jobs": 1,
+        "deterministic": true,
+        "force_row_wise": true,
+        "verbose": -1,
+        "random_state": 42,
+        "scale_pos_weight": 0.994018
+      },
+      "metrics": {
+        "accuracy": 0.845,
+        "precision": 0.936856,
+        "recall": 0.73583,
+        "f1": 0.824263,
+        "roc_auc": 0.899495,
+        "pr_auc": 0.921448,
+        "fpr": 0.048419,
+        "fnr": 0.26417,
+        "ci95": {
+          "accuracy": [
+            0.828479,
+            0.860198
+          ],
+          "precision": [
+            0.917498,
+            0.95191
+          ],
+          "recall": [
+            0.707463,
+            0.762371
+          ],
+          "fpr": [
+            0.036817,
+            0.063437
+          ],
+          "fnr": [
+            0.237629,
+            0.292537
+          ]
+        },
+        "counts": {
+          "n_samples": 2000,
+          "n_positive": 988,
+          "n_negative": 1012,
+          "tp": 727,
+          "fp": 49,
+          "tn": 963,
+          "fn": 261
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 3.930888,
+        "p95_ms": 7.41243,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 0.96
+    },
+    {
+      "model": "logistic_regression",
+      "protocol": "domain_disjoint",
+      "feature_set": "url_only",
+      "n_features": 8,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "hyperparameters": {
+        "algorithm": "LogisticRegression",
+        "C": 1.0,
+        "max_iter": 2000,
+        "class_weight": "balanced",
+        "solver": "lbfgs",
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 0.676538,
+        "precision": 0.986056,
+        "recall": 0.641192,
+        "f1": 0.77708,
+        "roc_auc": 0.842372,
+        "pr_auc": 0.975078,
+        "fpr": 0.066038,
+        "fnr": 0.358808,
+        "ci95": {
+          "accuracy": [
+            0.644883,
+            0.706654
+          ],
+          "precision": [
+            0.971499,
+            0.993229
+          ],
+          "recall": [
+            0.606734,
+            0.674251
+          ],
+          "fpr": [
+            0.032354,
+            0.130077
+          ],
+          "fnr": [
+            0.325749,
+            0.393266
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 495,
+          "fp": 7,
+          "tn": 99,
+          "fn": 277
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 2.2039,
+        "p95_ms": 3.069275,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 0.051
+    },
+    {
+      "model": "random_forest",
+      "protocol": "domain_disjoint",
+      "feature_set": "url_only",
+      "n_features": 8,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "hyperparameters": {
+        "algorithm": "RandomForestClassifier",
+        "n_estimators": 500,
+        "class_weight": "balanced",
+        "n_jobs": 1,
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 0.68451,
+        "precision": 0.988166,
+        "recall": 0.648964,
+        "f1": 0.783425,
+        "roc_auc": 0.836555,
+        "pr_auc": 0.97133,
+        "fpr": 0.056604,
+        "fnr": 0.351036,
+        "ci95": {
+          "accuracy": [
+            0.653024,
+            0.714389
+          ],
+          "precision": [
+            0.974424,
+            0.994565
+          ],
+          "recall": [
+            0.614632,
+            0.68182
+          ],
+          "fpr": [
+            0.026197,
+            0.118025
+          ],
+          "fnr": [
+            0.31818,
+            0.385368
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 501,
+          "fp": 6,
+          "tn": 100,
+          "fn": 271
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 58.767241,
+        "p95_ms": 77.16262,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 2.726
+    },
+    {
+      "model": "xgboost",
+      "protocol": "domain_disjoint",
+      "feature_set": "url_only",
+      "n_features": 8,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "hyperparameters": {
+        "algorithm": "XGBClassifier",
+        "n_estimators": 500,
+        "max_depth": 8,
+        "learning_rate": 0.02,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "tree_method": "hist",
+        "eval_metric": "logloss",
+        "nthread": 1,
+        "random_state": 42,
+        "scale_pos_weight": 0.136156
+      },
+      "metrics": {
+        "accuracy": 0.675399,
+        "precision": 0.987976,
+        "recall": 0.638601,
+        "f1": 0.775767,
+        "roc_auc": 0.838786,
+        "pr_auc": 0.974149,
+        "fpr": 0.056604,
+        "fnr": 0.361399,
+        "ci95": {
+          "accuracy": [
+            0.643721,
+            0.705548
+          ],
+          "precision": [
+            0.974018,
+            0.994478
+          ],
+          "recall": [
+            0.604103,
+            0.671726
+          ],
+          "fpr": [
+            0.026197,
+            0.118025
+          ],
+          "fnr": [
+            0.328274,
+            0.395897
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 493,
+          "fp": 6,
+          "tn": 100,
+          "fn": 279
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 5.20696,
+        "p95_ms": 7.57203,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 1.137
+    },
+    {
+      "model": "lightgbm",
+      "protocol": "domain_disjoint",
+      "feature_set": "url_only",
+      "n_features": 8,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "hyperparameters": {
+        "algorithm": "LGBMClassifier",
+        "n_estimators": 500,
+        "learning_rate": 0.02,
+        "num_leaves": 31,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "n_jobs": 1,
+        "deterministic": true,
+        "force_row_wise": true,
+        "verbose": -1,
+        "random_state": 42,
+        "scale_pos_weight": 0.136156
+      },
+      "metrics": {
+        "accuracy": 0.67426,
+        "precision": 0.987952,
+        "recall": 0.637306,
+        "f1": 0.774803,
+        "roc_auc": 0.838199,
+        "pr_auc": 0.974036,
+        "fpr": 0.056604,
+        "fnr": 0.362694,
+        "ci95": {
+          "accuracy": [
+            0.642559,
+            0.704442
+          ],
+          "precision": [
+            0.973966,
+            0.994467
+          ],
+          "recall": [
+            0.602788,
+            0.670464
+          ],
+          "fpr": [
+            0.026197,
+            0.118025
+          ],
+          "fnr": [
+            0.329536,
+            0.397212
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 492,
+          "fp": 6,
+          "tn": 100,
+          "fn": 280
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 2.610861,
+        "p95_ms": 3.33122,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 0.328
+    },
+    {
+      "model": "logistic_regression",
+      "protocol": "domain_disjoint",
+      "feature_set": "url_domain",
+      "n_features": 11,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "hyperparameters": {
+        "algorithm": "LogisticRegression",
+        "C": 1.0,
+        "max_iter": 2000,
+        "class_weight": "balanced",
+        "solver": "lbfgs",
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 0.679954,
+        "precision": 0.99002,
+        "recall": 0.642487,
+        "f1": 0.779262,
+        "roc_auc": 0.867234,
+        "pr_auc": 0.980027,
+        "fpr": 0.04717,
+        "fnr": 0.357513,
+        "ci95": {
+          "accuracy": [
+            0.648371,
+            0.70997
+          ],
+          "precision": [
+            0.976852,
+            0.99573
+          ],
+          "recall": [
+            0.608049,
+            0.675514
+          ],
+          "fpr": [
+            0.020314,
+            0.1057
+          ],
+          "fnr": [
+            0.324486,
+            0.391951
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 496,
+          "fp": 5,
+          "tn": 101,
+          "fn": 276
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 1.844615,
+        "p95_ms": 2.832475,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 0.067
+    },
+    {
+      "model": "random_forest",
+      "protocol": "domain_disjoint",
+      "feature_set": "url_domain",
+      "n_features": 11,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "hyperparameters": {
+        "algorithm": "RandomForestClassifier",
+        "n_estimators": 500,
+        "class_weight": "balanced",
+        "n_jobs": 1,
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 0.700456,
+        "precision": 0.982922,
+        "recall": 0.670984,
+        "f1": 0.797537,
+        "roc_auc": 0.844621,
+        "pr_auc": 0.973124,
+        "fpr": 0.084906,
+        "fnr": 0.329016,
+        "ci95": {
+          "accuracy": [
+            0.669337,
+            0.729828
+          ],
+          "precision": [
+            0.967865,
+            0.99099
+          ],
+          "recall": [
+            0.637065,
+            0.703211
+          ],
+          "fpr": [
+            0.045311,
+            0.153535
+          ],
+          "fnr": [
+            0.296789,
+            0.362935
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 518,
+          "fp": 9,
+          "tn": 97,
+          "fn": 254
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 55.804606,
+        "p95_ms": 65.523785,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 1.942
+    },
+    {
+      "model": "xgboost",
+      "protocol": "domain_disjoint",
+      "feature_set": "url_domain",
+      "n_features": 11,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "hyperparameters": {
+        "algorithm": "XGBClassifier",
+        "n_estimators": 500,
+        "max_depth": 8,
+        "learning_rate": 0.02,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "tree_method": "hist",
+        "eval_metric": "logloss",
+        "nthread": 1,
+        "random_state": 42,
+        "scale_pos_weight": 0.136156
+      },
+      "metrics": {
+        "accuracy": 0.677677,
+        "precision": 0.988024,
+        "recall": 0.641192,
+        "f1": 0.77769,
+        "roc_auc": 0.859144,
+        "pr_auc": 0.978822,
+        "fpr": 0.056604,
+        "fnr": 0.358808,
+        "ci95": {
+          "accuracy": [
+            0.646045,
+            0.70776
+          ],
+          "precision": [
+            0.974121,
+            0.9945
+          ],
+          "recall": [
+            0.606734,
+            0.674251
+          ],
+          "fpr": [
+            0.026197,
+            0.118025
+          ],
+          "fnr": [
+            0.325749,
+            0.393266
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 495,
+          "fp": 6,
+          "tn": 100,
+          "fn": 277
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 9.959796,
+        "p95_ms": 14.80891,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 1.112
+    },
+    {
+      "model": "lightgbm",
+      "protocol": "domain_disjoint",
+      "feature_set": "url_domain",
+      "n_features": 11,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "hyperparameters": {
+        "algorithm": "LGBMClassifier",
+        "n_estimators": 500,
+        "learning_rate": 0.02,
+        "num_leaves": 31,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "n_jobs": 1,
+        "deterministic": true,
+        "force_row_wise": true,
+        "verbose": -1,
+        "random_state": 42,
+        "scale_pos_weight": 0.136156
+      },
+      "metrics": {
+        "accuracy": 0.687927,
+        "precision": 0.986328,
+        "recall": 0.654145,
+        "f1": 0.786604,
+        "roc_auc": 0.855979,
+        "pr_auc": 0.978196,
+        "fpr": 0.066038,
+        "fnr": 0.345855,
+        "ci95": {
+          "accuracy": [
+            0.656516,
+            0.717701
+          ],
+          "precision": [
+            0.972051,
+            0.993362
+          ],
+          "recall": [
+            0.619903,
+            0.68686
+          ],
+          "fpr": [
+            0.032354,
+            0.130077
+          ],
+          "fnr": [
+            0.31314,
+            0.380097
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 505,
+          "fp": 7,
+          "tn": 99,
+          "fn": 267
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 4.331696,
+        "p95_ms": 6.24373,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 0.648
+    },
+    {
+      "model": "logistic_regression",
+      "protocol": "domain_disjoint",
+      "feature_set": "url_domain_page",
+      "n_features": 15,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "hyperparameters": {
+        "algorithm": "LogisticRegression",
+        "C": 1.0,
+        "max_iter": 2000,
+        "class_weight": "balanced",
+        "solver": "lbfgs",
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 0.694761,
+        "precision": 0.984615,
+        "recall": 0.663212,
+        "f1": 0.79257,
+        "roc_auc": 0.875275,
+        "pr_auc": 0.9814,
+        "fpr": 0.075472,
+        "fnr": 0.336788,
+        "ci95": {
+          "accuracy": [
+            0.663506,
+            0.724319
+          ],
+          "precision": [
+            0.969939,
+            0.992184
+          ],
+          "recall": [
+            0.629138,
+            0.69567
+          ],
+          "fpr": [
+            0.038736,
+            0.141902
+          ],
+          "fnr": [
+            0.30433,
+            0.370862
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 512,
+          "fp": 8,
+          "tn": 98,
+          "fn": 260
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 3.83287,
+        "p95_ms": 6.74145,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 0.147
+    },
+    {
+      "model": "random_forest",
+      "protocol": "domain_disjoint",
+      "feature_set": "url_domain_page",
+      "n_features": 15,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "hyperparameters": {
+        "algorithm": "RandomForestClassifier",
+        "n_estimators": 500,
+        "class_weight": "balanced",
+        "n_jobs": 1,
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 0.747153,
+        "precision": 0.972509,
+        "recall": 0.733161,
+        "f1": 0.836041,
+        "roc_auc": 0.849576,
+        "pr_auc": 0.974385,
+        "fpr": 0.150943,
+        "fnr": 0.266839,
+        "ci95": {
+          "accuracy": [
+            0.717368,
+            0.774784
+          ],
+          "precision": [
+            0.955812,
+            0.983009
+          ],
+          "recall": [
+            0.700861,
+            0.763151
+          ],
+          "fpr": [
+            0.095098,
+            0.231205
+          ],
+          "fnr": [
+            0.236849,
+            0.299139
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 566,
+          "fp": 16,
+          "tn": 90,
+          "fn": 206
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 92.068104,
+        "p95_ms": 108.25418,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 3.36
+    },
+    {
+      "model": "xgboost",
+      "protocol": "domain_disjoint",
+      "feature_set": "url_domain_page",
+      "n_features": 15,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "hyperparameters": {
+        "algorithm": "XGBClassifier",
+        "n_estimators": 500,
+        "max_depth": 8,
+        "learning_rate": 0.02,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "tree_method": "hist",
+        "eval_metric": "logloss",
+        "nthread": 1,
+        "random_state": 42,
+        "scale_pos_weight": 0.136156
+      },
+      "metrics": {
+        "accuracy": 0.725513,
+        "precision": 0.980108,
+        "recall": 0.702073,
+        "f1": 0.818113,
+        "roc_auc": 0.863195,
+        "pr_auc": 0.979559,
+        "fpr": 0.103774,
+        "fnr": 0.297927,
+        "ci95": {
+          "accuracy": [
+            0.69506,
+            0.754001
+          ],
+          "precision": [
+            0.964735,
+            0.988857
+          ],
+          "recall": [
+            0.668874,
+            0.73327
+          ],
+          "fpr": [
+            0.058939,
+            0.176323
+          ],
+          "fnr": [
+            0.26673,
+            0.331126
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 542,
+          "fp": 11,
+          "tn": 95,
+          "fn": 230
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 10.196146,
+        "p95_ms": 14.53388,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 1.696
+    },
+    {
+      "model": "lightgbm",
+      "protocol": "domain_disjoint",
+      "feature_set": "url_domain_page",
+      "n_features": 15,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "hyperparameters": {
+        "algorithm": "LGBMClassifier",
+        "n_estimators": 500,
+        "learning_rate": 0.02,
+        "num_leaves": 31,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "n_jobs": 1,
+        "deterministic": true,
+        "force_row_wise": true,
+        "verbose": -1,
+        "random_state": 42,
+        "scale_pos_weight": 0.136156
+      },
+      "metrics": {
+        "accuracy": 0.724374,
+        "precision": 0.97491,
+        "recall": 0.704663,
+        "f1": 0.818045,
+        "roc_auc": 0.859798,
+        "pr_auc": 0.97899,
+        "fpr": 0.132075,
+        "fnr": 0.295337,
+        "ci95": {
+          "accuracy": [
+            0.693888,
+            0.752904
+          ],
+          "precision": [
+            0.958329,
+            0.984997
+          ],
+          "recall": [
+            0.671533,
+            0.735767
+          ],
+          "fpr": [
+            0.080331,
+            0.209555
+          ],
+          "fnr": [
+            0.264233,
+            0.328467
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 544,
+          "fp": 14,
+          "tn": 92,
+          "fn": 228
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 4.530632,
+        "p95_ms": 5.688765,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 0.609
+    },
+    {
+      "model": "logistic_regression",
+      "protocol": "domain_disjoint",
+      "feature_set": "full_legacy16",
+      "n_features": 16,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "hyperparameters": {
+        "algorithm": "LogisticRegression",
+        "C": 1.0,
+        "max_iter": 2000,
+        "class_weight": "balanced",
+        "solver": "lbfgs",
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 0.738041,
+        "precision": 0.977113,
+        "recall": 0.718912,
+        "f1": 0.828358,
+        "roc_auc": 0.88108,
+        "pr_auc": 0.982189,
+        "fpr": 0.122642,
+        "fnr": 0.281088,
+        "ci95": {
+          "accuracy": [
+            0.707964,
+            0.766044
+          ],
+          "precision": [
+            0.961238,
+            0.986577
+          ],
+          "recall": [
+            0.686177,
+            0.749479
+          ],
+          "fpr": [
+            0.073091,
+            0.198588
+          ],
+          "fnr": [
+            0.250521,
+            0.313823
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 555,
+          "fp": 13,
+          "tn": 93,
+          "fn": 217
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 2.796149,
+        "p95_ms": 4.02681,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 0.138
+    },
+    {
+      "model": "random_forest",
+      "protocol": "domain_disjoint",
+      "feature_set": "full_legacy16",
+      "n_features": 16,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "hyperparameters": {
+        "algorithm": "RandomForestClassifier",
+        "n_estimators": 500,
+        "class_weight": "balanced",
+        "n_jobs": 1,
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 0.77221,
+        "precision": 0.964286,
+        "recall": 0.76943,
+        "f1": 0.855908,
+        "roc_auc": 0.85626,
+        "pr_auc": 0.975472,
+        "fpr": 0.207547,
+        "fnr": 0.23057,
+        "ci95": {
+          "accuracy": [
+            0.743316,
+            0.798731
+          ],
+          "precision": [
+            0.946518,
+            0.976299
+          ],
+          "recall": [
+            0.738428,
+            0.797764
+          ],
+          "fpr": [
+            0.141245,
+            0.294305
+          ],
+          "fnr": [
+            0.202236,
+            0.261572
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 594,
+          "fp": 22,
+          "tn": 84,
+          "fn": 178
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 93.121244,
+        "p95_ms": 122.39878,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 3.002
+    },
+    {
+      "model": "xgboost",
+      "protocol": "domain_disjoint",
+      "feature_set": "full_legacy16",
+      "n_features": 16,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "hyperparameters": {
+        "algorithm": "XGBClassifier",
+        "n_estimators": 500,
+        "max_depth": 8,
+        "learning_rate": 0.02,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "tree_method": "hist",
+        "eval_metric": "logloss",
+        "nthread": 1,
+        "random_state": 42,
+        "scale_pos_weight": 0.136156
+      },
+      "metrics": {
+        "accuracy": 0.740319,
+        "precision": 0.972222,
+        "recall": 0.725389,
+        "f1": 0.830861,
+        "roc_auc": 0.873448,
+        "pr_auc": 0.981129,
+        "fpr": 0.150943,
+        "fnr": 0.274611,
+        "ci95": {
+          "accuracy": [
+            0.710314,
+            0.76823
+          ],
+          "precision": [
+            0.955356,
+            0.982831
+          ],
+          "recall": [
+            0.692847,
+            0.755699
+          ],
+          "fpr": [
+            0.095098,
+            0.231205
+          ],
+          "fnr": [
+            0.244301,
+            0.307153
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 560,
+          "fp": 16,
+          "tn": 90,
+          "fn": 212
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 8.513689,
+        "p95_ms": 10.95184,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 1.592
+    },
+    {
+      "model": "lightgbm",
+      "protocol": "domain_disjoint",
+      "feature_set": "full_legacy16",
+      "n_features": 16,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "hyperparameters": {
+        "algorithm": "LGBMClassifier",
+        "n_estimators": 500,
+        "learning_rate": 0.02,
+        "num_leaves": 31,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "n_jobs": 1,
+        "deterministic": true,
+        "force_row_wise": true,
+        "verbose": -1,
+        "random_state": 42,
+        "scale_pos_weight": 0.136156
+      },
+      "metrics": {
+        "accuracy": 0.752847,
+        "precision": 0.96796,
+        "recall": 0.743523,
+        "f1": 0.841026,
+        "roc_auc": 0.86779,
+        "pr_auc": 0.980267,
+        "fpr": 0.179245,
+        "fnr": 0.256477,
+        "ci95": {
+          "accuracy": [
+            0.723254,
+            0.780238
+          ],
+          "precision": [
+            0.950501,
+            0.979394
+          ],
+          "recall": [
+            0.711565,
+            0.77307
+          ],
+          "fpr": [
+            0.117861,
+            0.263066
+          ],
+          "fnr": [
+            0.22693,
+            0.288435
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 574,
+          "fp": 19,
+          "tn": 87,
+          "fn": 198
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 3.308985,
+        "p95_ms": 4.167865,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 0.618
+    },
+    {
+      "model": "logistic_regression",
+      "protocol": "vector_disjoint",
+      "feature_set": "url_domain_page",
+      "n_features": 15,
+      "train_rows": 3223,
+      "test_rows": 1143,
+      "hyperparameters": {
+        "algorithm": "LogisticRegression",
+        "C": 1.0,
+        "max_iter": 2000,
+        "class_weight": "balanced",
+        "solver": "lbfgs",
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 0.774278,
+        "precision": 0.988506,
+        "recall": 0.756598,
+        "f1": 0.857143,
+        "roc_auc": 0.905026,
+        "pr_auc": 0.986785,
+        "fpr": 0.075,
+        "fnr": 0.243402,
+        "ci95": {
+          "accuracy": [
+            0.749146,
+            0.797573
+          ],
+          "precision": [
+            0.9783,
+            0.993941
+          ],
+          "recall": [
+            0.729373,
+            0.781904
+          ],
+          "fpr": [
+            0.039957,
+            0.136411
+          ],
+          "fnr": [
+            0.218096,
+            0.270627
+          ]
+        },
+        "counts": {
+          "n_samples": 1143,
+          "n_positive": 1023,
+          "n_negative": 120,
+          "tp": 774,
+          "fp": 9,
+          "tn": 111,
+          "fn": 249
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 2.713143,
+        "p95_ms": 4.49968,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 0.114
+    },
+    {
+      "model": "random_forest",
+      "protocol": "vector_disjoint",
+      "feature_set": "url_domain_page",
+      "n_features": 15,
+      "train_rows": 3223,
+      "test_rows": 1143,
+      "hyperparameters": {
+        "algorithm": "RandomForestClassifier",
+        "n_estimators": 500,
+        "class_weight": "balanced",
+        "n_jobs": 1,
+        "random_state": 42
+      },
+      "metrics": {
+        "accuracy": 0.817148,
+        "precision": 0.979953,
+        "recall": 0.812317,
+        "f1": 0.888295,
+        "roc_auc": 0.905173,
+        "pr_auc": 0.986705,
+        "fpr": 0.141667,
+        "fnr": 0.187683,
+        "ci95": {
+          "accuracy": [
+            0.793688,
+            0.838483
+          ],
+          "precision": [
+            0.96813,
+            0.987447
+          ],
+          "recall": [
+            0.787237,
+            0.835059
+          ],
+          "fpr": [
+            0.090368,
+            0.215196
+          ],
+          "fnr": [
+            0.164941,
+            0.212763
+          ]
+        },
+        "counts": {
+          "n_samples": 1143,
+          "n_positive": 1023,
+          "n_negative": 120,
+          "tp": 831,
+          "fp": 17,
+          "tn": 103,
+          "fn": 192
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 86.475432,
+        "p95_ms": 101.72908,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 3.561
+    },
+    {
+      "model": "xgboost",
+      "protocol": "vector_disjoint",
+      "feature_set": "url_domain_page",
+      "n_features": 15,
+      "train_rows": 3223,
+      "test_rows": 1143,
+      "hyperparameters": {
+        "algorithm": "XGBClassifier",
+        "n_estimators": 500,
+        "max_depth": 8,
+        "learning_rate": 0.02,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "tree_method": "hist",
+        "eval_metric": "logloss",
+        "nthread": 1,
+        "random_state": 42,
+        "scale_pos_weight": 0.143313
+      },
+      "metrics": {
+        "accuracy": 0.806649,
+        "precision": 0.98665,
+        "recall": 0.794721,
+        "f1": 0.880347,
+        "roc_auc": 0.902118,
+        "pr_auc": 0.986333,
+        "fpr": 0.091667,
+        "fnr": 0.205279,
+        "ci95": {
+          "accuracy": [
+            0.782742,
+            0.828502
+          ],
+          "precision": [
+            0.976255,
+            0.99253
+          ],
+          "recall": [
+            0.768889,
+            0.818348
+          ],
+          "fpr": [
+            0.051957,
+            0.15671
+          ],
+          "fnr": [
+            0.181652,
+            0.231111
+          ]
+        },
+        "counts": {
+          "n_samples": 1143,
+          "n_positive": 1023,
+          "n_negative": 120,
+          "tp": 813,
+          "fp": 11,
+          "tn": 109,
+          "fn": 210
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 10.025207,
+        "p95_ms": 13.34733,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 1.952
+    },
+    {
+      "model": "lightgbm",
+      "protocol": "vector_disjoint",
+      "feature_set": "url_domain_page",
+      "n_features": 15,
+      "train_rows": 3223,
+      "test_rows": 1143,
+      "hyperparameters": {
+        "algorithm": "LGBMClassifier",
+        "n_estimators": 500,
+        "learning_rate": 0.02,
+        "num_leaves": 31,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "n_jobs": 1,
+        "deterministic": true,
+        "force_row_wise": true,
+        "verbose": -1,
+        "random_state": 42,
+        "scale_pos_weight": 0.143313
+      },
+      "metrics": {
+        "accuracy": 0.854768,
+        "precision": 0.951528,
+        "recall": 0.882698,
+        "f1": 0.915822,
+        "roc_auc": 0.902151,
+        "pr_auc": 0.986319,
+        "fpr": 0.383333,
+        "fnr": 0.117302,
+        "ci95": {
+          "accuracy": [
+            0.833153,
+            0.874006
+          ],
+          "precision": [
+            0.93595,
+            0.963465
+          ],
+          "recall": [
+            0.861532,
+            0.901
+          ],
+          "fpr": [
+            0.301244,
+            0.472661
+          ],
+          "fnr": [
+            0.099,
+            0.138468
+          ]
+        },
+        "counts": {
+          "n_samples": 1143,
+          "n_positive": 1023,
+          "n_negative": 120,
+          "tp": 903,
+          "fp": 46,
+          "tn": 74,
+          "fn": 120
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 4.735665,
+        "p95_ms": 7.8252,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "fit_seconds": 0.611
+    }
+  ],
+  "environment": {
+    "python": "3.14.3",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "scikit_learn": "1.9.0",
+    "xgboost": "3.4.1",
+    "lightgbm": "4.7.0",
+    "pandas": "3.0.5",
+    "numpy": "2.5.2",
+    "joblib": "1.5.3",
+    "generated_at_utc": "2026-10-07T07:44:40+00:00"
+  },
+  "shipped_artifacts": {
+    "logistic_regression.joblib": {
+      "sha256": "ebfcd68d090e2f25c886f1e9e32998077a9b59101360ab27150eeef42ffa7044",
+      "size_bytes": 1439
+    },
+    "random_forest.joblib": {
+      "sha256": "7c336ebfd14e0b1b35397ac632ea6acb39efc362826dc58b031d4e60bfa5afb3",
+      "size_bytes": 13453865
+    },
+    "xgboost.joblib": {
+      "sha256": "a5a7ffefb6cda8ce51aa6fe49024455af8495789f9e66b852e5bcf7d700f3c8a",
+      "size_bytes": 933054
+    },
+    "lightgbm.joblib": {
+      "sha256": "bd8be6d03ba06faad8d69fbc2928f32b41653cda831714747537d245d3b147a1",
+      "size_bytes": 1707828
+    }
+  }
+}

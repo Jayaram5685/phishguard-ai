@@ -58,14 +58,12 @@ def test_extra_double_slash_after_scheme_is_redirection():
     assert redirection("https://example.com//evil.example/path") == 1
 
 
-def test_having_ip_must_inspect_hostname_not_whole_url():
-    """Documents a known defect: the current implementation tests the entire
-    URL string, so a genuine IP-literal host is never detected. Kept as an
-    xfail so the P2 rewrite flips it to a real assertion."""
-    import pytest
-
-    pytest.xfail(
-        "Have_IP is computed on the whole URL (URLFeatureExtraction.havingIP); "
-        "fixed in milestone P2 where the feature pipeline is unified."
-    )
+def test_having_ip_inspects_hostname_not_whole_url():
+    """features-v2 semantics (P2): Have_IP is a hostname-scoped dotted-quad
+    test. Verified against the dataset: the hostname rule matches all 4,964
+    reconstructed rows, the legacy whole-URL variant is falsified by 37 rows
+    with IPs embedded in the path (labelled legitimate)."""
     assert havingIP("http://192.168.1.10/login") == 1
+    assert havingIP("http://example.com/192.168.1.10/") == 0
+    assert havingIP("https://example.com/search?q=10.0.0.1") == 0
+    assert havingIP(SAFE_URL) == 0

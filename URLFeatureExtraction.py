@@ -1,6 +1,5 @@
 
 # importing required packages for this section
-import ipaddress
 import re
 from urllib.parse import urlparse
 
@@ -24,12 +23,17 @@ If the domain part of URL has IP address, the value assigned to this feature is 
 
 # 2.Checks for IP address in URL (Have_IP)
 def havingIP(url):
-  try:
-    ipaddress.ip_address(url)
-    ip = 1
-  except:
-    ip = 0
-  return ip
+  """1 when the *hostname* contains a dotted-quad IPv4 pattern.
+
+  features-v2 semantics: the legacy implementation called
+  ``ipaddress.ip_address`` on the whole URL string, which can never succeed
+  for a URL with a scheme. Reconstructing the dataset from the raw source
+  lists shows the training values match a hostname-scoped dotted-quad test on
+  4,964/4,964 reconstructed rows, while the full-URL variant is contradicted
+  by 37 rows (path-embedded IPs that are labelled 0).
+  """
+  hostname = urlparse(url).hostname or ''
+  return 1 if re.search(r'\d{1,3}(\.\d{1,3}){3}', hostname) else 0
 
 """#### **3.1.3. "@" Symbol in URL**
 
@@ -193,20 +197,14 @@ If the rank of the domain < 100000, the vlaue of this feature is 1 (phishing) el
 """
 
 # 12.Web traffic (Web_Traffic)
-def web_traffic(url):
-  """DEGENERATE FEATURE -- Alexa Internet was discontinued in 2022.
-
-  The legacy implementation queried ``http://data.alexa.com/data?...``. That
-  endpoint no longer exists, so every call raised and this function returned
-  1; it also leaked a third-party request on every scan. The constant below
-  reproduces the previous *effective* behaviour with no network call, so the
-  16-feature contract expected by the shipped models is preserved.
-
-  The pipeline rewrite (milestone P2) either replaces this signal with a
-  maintained popularity/reputation source or removes the column entirely --
-  no fake popularity values are ever fabricated in the meantime.
-  """
-  return 1
+# REMOVED in milestone P2: Alexa Internet was discontinued in 2022, the
+# legacy implementation raised on every call (returning the failure default
+# 1) and leaked a third-party request per scan. Serving a constant for a
+# feature the model was trained on varying values measurably degrades
+# predictions (~4 accuracy points, docs/METHODOLOGY.md), so the column is
+# dropped from the features-v2 contract entirely instead of being faked.
+# It survives only as the diagnostic ablation level "full_legacy16"
+# (phishguard.features.ABLATIONS) for the research study.
 
 
 """#### **3.2.3. Age of Domain**
@@ -356,32 +354,25 @@ Create a list and a function that calls the other functions and stores all the f
 
 #Function to extract features
 def featureExtraction(url):
-  """Extract the legacy 16-feature vector for ``url``.
+  """Extract the features-v2 mapping for ``url``.
+
+  Returns a dict keyed by every name in :data:`phishguard.features.FEATURE_NAMES`
+  (canonical order, integer values), validated against the schema so training
+  and inference can never disagree on shape, order or value ranges.
 
   Outbound operations (WHOIS, page fetch) are SSRF-guarded: internal hosts,
   IP literals in private ranges, metadata endpoints and non-http(s) schemes
   never produce a network request. Blocked or failed lookups degrade to the
   same "no intelligence" values the legacy code produced on timeout.
   """
+  from phishguard.features import validate_features
 
-  features = []
-  #Address bar based features (10)
-  #features.append(getDomain(url))
-  features.append(havingIP(url))
-  features.append(haveAtSign(url))
-  features.append(getLength(url))
-  features.append(getDepth(url))
-  features.append(redirection(url))
-  features.append(httpDomain(url))
-  features.append(tinyURL(url))
-  features.append(prefixSuffix(url))
-
-  #Domain based features (4)
+  #Domain based features (WHOIS is guarded: internal hosts, IP literals and
+  # malformed names never trigger a lookup -- they behave like a failed WHOIS).
   hostname = urlparse(url).hostname or ''
   dns = 0
   domain_name = None
   if not is_public_domain_candidate(hostname):
-    # Internal host, IP literal or malformed name: no WHOIS intelligence.
     dns = 1
   else:
     try:
@@ -391,20 +382,30 @@ def featureExtraction(url):
     except Exception:
       dns = 1
 
-  features.append(dns)
-  features.append(web_traffic(url))
-  features.append(1 if dns == 1 else domainAge(domain_name))
-  features.append(1 if dns == 1 else domainEnd(domain_name))
-
   # HTML & Javascript based features (SSRF-guarded, redirects re-validated)
   response = safe_fetch(url)
   if response is None:
     response = ""
 
-  features.append(iframe(response))
-  features.append(mouseOver(response))
-  features.append(rightClick(response))
-  features.append(forwarding(response))
-
-  return features
+  features = {
+    # Address bar based features (8)
+    "Have_IP": havingIP(url),
+    "Have_At": haveAtSign(url),
+    "URL_Length": getLength(url),
+    "URL_Depth": getDepth(url),
+    "Redirection": redirection(url),
+    "https_Domain": httpDomain(url),
+    "TinyURL": tinyURL(url),
+    "Prefix/Suffix": prefixSuffix(url),
+    # Domain based features (3)
+    "DNS_Record": dns,
+    "Domain_Age": 1 if dns == 1 else domainAge(domain_name),
+    "Domain_End": 1 if dns == 1 else domainEnd(domain_name),
+    # HTML & Javascript based features (4)
+    "iFrame": iframe(response),
+    "Mouse_Over": mouseOver(response),
+    "Right_Click": rightClick(response),
+    "Web_Forwards": forwarding(response),
+  }
+  return validate_features(features)
 
