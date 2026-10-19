@@ -247,8 +247,9 @@ python evaluate_models.py --check   # load each shipped artifact, rescore the
 python train_model.py --check       # refit all 24 experiments, compare metrics
 ```
 
-Both `--check` commands exit non-zero on drift (default tolerance `1e-6`) and
-are wired into CI with a cross-platform tolerance of `5e-3` — see
+Both `--check` commands exit non-zero on drift. Locally the default tolerance
+is `1e-6`; CI (Linux/3.12, a different platform from the training machine)
+runs the artifact-parity gate at `5e-3` and the refit gate at `2e-2` — see
 [`.github/workflows/ci.yml`](../.github/workflows/ci.yml).
 
 Determinism comes from: an explicit `random_state=42` on every estimator;
@@ -257,6 +258,14 @@ single-threaded fits (`n_jobs=1`, `nthread=1`, LightGBM
 (SHA-256 recorded in `models/metrics.json`); and no fitted preprocessing.
 Verified locally: `train_model.py --check` reproduces all 24 experiments to
 within `1e-6`, including metrics, on repeat runs.
+
+One honest caveat, measured in CI: **XGBoost's `hist` tree builder is not
+bit-reproducible across platforms.** Refitting on Linux/Python 3.12 against
+metrics recorded on Windows/Python 3.14 drifted by up to `1.04e-2` (a single
+ablation, `xgboost/domain_disjoint/url_domain`); every other experiment,
+including the shipped artifacts, stayed inside `5e-3`. The CI refit gate is
+therefore set to `2e-2` — well above float noise, far below the 8+ point moves
+a wrong split, lost seed or changed feature set produces.
 
 `models/metrics.json` (benchmark) and `models/registry.json` (shipped
 artifacts) are cross-checked by `tests/test_ml_pipeline.py` and
