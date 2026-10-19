@@ -2,14 +2,21 @@ services:
   - type: web
     name: phishguard-api
     env: python
+    # Explicit free plan: without this Render treats the blueprint as paid and
+    # blocks creation behind a card prompt.
+    plan: free
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn --workers 2 --threads 4 --timeout 30 app:app"
+    # One worker, not two: the Free instance has 512 MB total, and each worker
+    # loads its own copy of the 13 MB model plus the scientific stack. Threads
+    # cover concurrency (the request path is dominated by WHOIS/HTTP waits).
+    # Bump --workers when you move to a paid plan.
+    startCommand: "gunicorn --workers 1 --threads 4 --timeout 30 app:app"
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
         value: "3.12.10"
       # Render terminates TLS and forwards the real client IP in
-      # X-Forwarded-For; the app is never directly exposed behind the router,
+      # X-Forwarded-For; the app is only reachable through their router,
       # so trusting the first hop keeps per-client rate limiting accurate.
       - key: TRUST_PROXY
         value: "1"

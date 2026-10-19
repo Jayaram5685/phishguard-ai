@@ -205,10 +205,11 @@ only (see [`phishguard/config.py`](phishguard/config.py)):
 
 ```bash
 pip install -r requirements.txt
-gunicorn --workers 2 --threads 4 --timeout 30 app:app
+gunicorn --workers 1 --threads 4 --timeout 30 app:app
 ```
 
-The included [`render.yaml`](render.yaml) blueprint does this for you. On any
+The included [`render.yaml`](render.yaml) blueprint does this for you (with
+`plan: free` — bump `--workers` if you move to a paid instance). On any
 internet-facing deploy: set `API_KEY`, point the extension's `apiUrl` at the
 service, and keep `CORS_ORIGINS` tight. Threat model and accepted residual
 risks: [`docs/threat-model.md`](docs/threat-model.md).

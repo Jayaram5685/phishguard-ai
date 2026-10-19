@@ -58,7 +58,7 @@ jobs:
         run: pip install -r requirements.txt
       - name: Boot with the production command and probe /health
         run: |
-          gunicorn --workers 2 --threads 4 --timeout 30 app:app &
+          gunicorn --workers 1 --threads 4 --timeout 30 app:app &
           for i in $(seq 1 30); do
             if curl -sf http://127.0.0.1:8000/health; then echo; break; fi
             sleep 2
