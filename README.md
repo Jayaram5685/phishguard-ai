@@ -2,150 +2,246 @@
 
 > **Detect. Explain. Protect.**
 
-An AI-powered web security system that detects phishing websites in real-time. The project consists of a modern, lightweight Google Chrome Extension that communicates with a Flask-based backend server. The backend runs feature extraction on the scanned URL and queries a tuned Machine Learning classifier to output a prediction ("Safe" vs. "Phishing").
+A real-time phishing triage system: a lightweight Chrome extension asks a
+Flask API to analyse the current page, and the API answers with a verdict, the
+model's own probability, and the **feature-level reasons** behind it — not a
+black-box yes/no.
 
-> **Status — milestone P0 (repository bootstrap).** This README is the legacy
-> upstream document. It is being replaced as part of the PhishGuard AI
-> rebuild; numbers inherited from upstream are labelled `UNVERIFIED` until the
-> reproducible evaluation framework lands. See [`models/MODEL_CARD.md`](models/MODEL_CARD.md)
-> and [`DataFiles/DATASETS.md`](DataFiles/DATASETS.md).
+**Status — milestone P2 (reproducible ML pipeline).** Training, evaluation and
+serving all run on one 15-feature contract (`features-v2`) with leakage-free,
+domain-disjoint evaluation. Every metric quoted below was reproduced from this
+repository — see [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md) for the protocol
+and [`docs/threat-model.md`](docs/threat-model.md) for the security posture.
 
 ---
 
-## 🏗️ Project Architecture
+## How it works
 
 ```mermaid
 graph TD
-    A[User visits a Webpage] --> B[Clicks Chrome Extension Popup]
-    B --> C[Extension gets active URL]
-    C -->|Sends POST request with URL| D[Flask API Server]
-    D --> E[URLFeatureExtraction.py]
-    E -->|1. URL Syntax Checks| F[Extract 16 Features]
-    E -->|2. WHOIS Domain Registration| F
-    E -->|3. HTML & JS Structural Parsing| F
-    F -->|Constructs Pandas DataFrame| G[Tuned Machine Learning Model]
-    G -->|Predicts Label 0 = Safe, 1 = Phishing| H[Return JSON Response]
-    H -->|Render results with UI effects| B
+    A[User opens the extension popup] --> B[POST /predict with the active URL]
+    B --> C{SSRF guard: scheme, port,<br/>hostname, DNS resolution}
+    C -->|blocked / unsupported| D["skipped verdict<br/>(never fetched)"]
+    C -->|allowed| E[Feature extraction<br/>URL syntax + DNS/WHOIS + page]
+    E --> F[features-v2: 15 features, schema-validated]
+    F --> G[Model artifact from models/registry.json]
+    G --> H["JSON: prediction, score,<br/>model, reasons"]
+    H --> I[Popup renders verdict,<br/>phishing score and reasons]
 ```
 
 ---
 
-## ⚡ Key Features & URL Parsing
+## Highlights
 
-When a URL is scanned, the backend extracts **16 key features** categorized into three main categories:
+* **Explainable verdicts** — `/predict` returns `reasons[]` derived from the
+  exact feature vector the model scored; unavailable signals are reported as
+  unavailable instead of silently guessed.
+* **Four shipped models** — Random Forest (default), XGBoost, LightGBM and
+  Logistic Regression, switchable at boot with `MODEL_NAME` (no code change).
+* **Hardened API** — SSRF-guarded outbound fetching, sliding-window rate
+  limiting, structured errors without stack traces, origin allowlist instead
+  of open CORS, optional API key, URLs never logged.
+* **Honest evaluation** — three split protocols (leaked baseline, primary
+  domain-disjoint, stress-test vector-disjoint), Wilson confidence intervals,
+  and explicit baselines so accuracy is never quoted without context.
+* **Reproducible to the digit** — `train_model.py --check` refits all 24
+  experiments and asserts the committed metrics reproduce within `1e-6`.
 
-1. **Address Bar (Syntax) Features**:
-   - Presence of an IP address in the domain
-   - Presence of `@` symbols (used to redirect and ignore preceding text)
-   - URL length check (URLs $\ge$ 54 characters classified as higher risk)
-   - Path depth (count of subfolders)
-   - Redirection symbol `//` locations
-   - Existence of `http/https` inside the domain name (phishing spoofing)
-   - Use of common URL shortening services (e.g., bit.ly, tinyurl)
-   - Prefix/suffix dashes `-` in the domain name
+## Features extracted (features-v2 — 15 columns)
 
-2. **Domain-Based Features**:
-   - **DNS Record**: Presence/availability of records in the DNS registrar.
-   - **Web Traffic**: Global popularity rating (falls back to a default value since the Alexa API decommissioning).
-   - **Domain Age**: Age calculated between creation and expiration dates (minimum 12 months for legitimate sites).
-   - **Domain End**: Remaining duration before domain expiry.
+| Group | Features |
+|---|---|
+| URL syntax (8) | `Have_IP`, `Have_At`, `URL_Length`, `URL_Depth`, `Redirection`, `https_Domain`, `TinyURL`, `Prefix/Suffix` |
+| Domain (3) | `DNS_Record`, `Domain_Age`, `Domain_End` |
+| Page (4) | `iFrame`, `Mouse_Over`, `Right_Click`, `Web_Forwards` |
 
-3. **HTML & JavaScript Features**:
-   - **IFrame Redirection**: Invisible frames used to overlay content.
-   - **Status Bar Customization**: Detection of `onmouseover` event overrides.
-   - **Disabling Right Click**: Prevention of users viewing page source code.
-   - **Website Forwarding**: Number of times the response has redirected (limit of $\le 2$ for legitimate sites).
+* Legacy `Web_Traffic` was **removed**: its Alexa source was discontinued in
+  2022 and cannot be served. Forcing it to the only available value costs
+  3.8–4.4 accuracy points (measured — [`docs/METHODOLOGY.md` §6.2](docs/METHODOLOGY.md)).
+* `Have_IP` is now evaluated against the **hostname** (the legacy whole-URL
+  check could never succeed).
+* Domain/page features are best-effort: some are `1` both when a pattern was
+  observed *and* when the lookup failed. The API says which signals were
+  missing rather than pretending otherwise.
 
----
+## Model performance
 
-## 📊 Machine Learning Models & Dataset
+Primary protocol `domain_disjoint` (zero domain overlap), seed 42, n = 878
+test rows (772 phishing / 106 legitimate), features-v2:
 
-The models are trained on a balanced dataset of **10,000 URLs** (5,000 legitimate URLs and 5,000 phishing URLs sourced from PhishTank feeds) using 16 extracted feature columns.
+| Model | Accuracy | F1 | ROC-AUC | FPR | p95 latency |
+|---|---|---|---|---|---|
+| `random_forest` (**default**) | **0.7472** | **0.8360** | 0.8496 | 0.1509 | 108 ms |
+| `xgboost` | 0.7255 | 0.8181 | 0.8632 | 0.1038 | 15 ms |
+| `lightgbm` | 0.7244 | 0.8180 | 0.8598 | 0.1321 | 6 ms |
+| `logistic_regression` | 0.6948 | 0.7926 | **0.8753** | **0.0755** | 7 ms |
 
-Two classifiers are shipped in [`models/`](models/):
-
-* **Random Forest** (500 estimators) — `models/random_forest.joblib` *(primary model used by the API)*
-* **XGBoost** (`n_estimators=500`, `max_depth=8`) — `models/xgboost.joblib`
-
-> ⚠️ **Metrics are UNVERIFIED.** Upstream quoted 85.95% / 85.70% accuracy from a
-> single random split of a dataset containing only 771 unique feature vectors
-> across 10,000 rows — i.e. heavy train/test leakage. Those figures are
-> recorded for traceability in [`models/MODEL_CARD.md`](models/MODEL_CARD.md)
-> and are **not** claims of detection quality. Leakage-free, domain-disjoint
-> evaluation is tracked as milestone P2/P8.
-
----
-
-## 🚀 Setup and Run Guide
-
-### 1. Run the Flask Backend
-Make sure you have Python 3.11+ installed (CI tests 3.11 / 3.12 / 3.13).
-
-1. Navigate to the project root folder:
-   ```bash
-   cd phishguard-ai
-   ```
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv venv
-   # On Windows:
-   venv\Scripts\activate
-   # On macOS/Linux:
-   source venv/bin/activate
-   ```
-3. Install the dependencies:
-   ```bash
-   pip install -r requirements.txt        # runtime
-   pip install -r requirements-dev.txt    # + pytest, ruff (development)
-   ```
-4. Start the Flask server:
-   ```bash
-   python app.py
-   ```
-   The API will now be running locally at `http://127.0.0.1:5000/`.
-   Verify with `curl http://127.0.0.1:5000/health`.
-
-5. Run the test suite (offline):
-   ```bash
-   pytest -m "not network"
-   ruff check .
-   ```
+> **Read this honestly.** The test split is 87.9% phishing, so a classifier
+> that always answers "phishing" scores 0.879 accuracy / 0.936 F1 while being
+> useless, and the 15-feature representation caps out at 0.906. That is why
+> the operating metrics are ranking (ROC-AUC 0.85–0.88 vs 0.5 for a constant)
+> and the FPR/FNR trade-off — full reasoning and confidence intervals in
+> [`docs/METHODOLOGY.md` §7](docs/METHODOLOGY.md).
 
 ---
 
-### 2. Load the Google Chrome Extension
+## Quickstart
 
-1. Open Google Chrome and navigate to `chrome://extensions/`.
-2. Turn on **Developer mode** using the toggle switch in the top-right corner.
-3. Click the **Load unpacked** button in the top-left corner.
-4. Select the `Phishing_detection_app/chrome_extension` folder inside this project.
-5. The extension "Phishing Detector" is now loaded! Pin it to your Chrome toolbar.
-6. Open any website in your browser, click the extension icon, and select **Scan Current Page**.
+### 1. Run the API
+
+Python 3.11+ (CI tests 3.11 / 3.12 / 3.13).
+
+```bash
+python -m venv venv
+source venv/bin/activate          # Windows: venv\Scripts\activate
+pip install -r requirements-dev.txt
+
+python app.py                     # http://127.0.0.1:5000
+curl http://127.0.0.1:5000/health # {"status":"ok","model":"random_forest.joblib"}
+```
+
+### 2. Run the checks
+
+```bash
+pytest -m "not network"           # 180 offline tests
+ruff check .                      # lint
+node --check Phishing_detection_app/chrome_extension/popup.js
+
+python evaluate_models.py --check # rescore shipped artifacts vs metrics.json
+python train_model.py --check     # refit 24 experiments, assert metrics reproduce
+```
+
+### 3. Load the Chrome extension
+
+1. Open `chrome://extensions/` and enable **Developer mode**.
+2. **Load unpacked** → select `Phishing_detection_app/chrome_extension`.
+3. Pin **PhishGuard**, open a page, press **Scan Current Page**.
+
+The popup calls `http://127.0.0.1:5000/predict` by default. Override without
+rebuilding the extension (open the service worker console or any extension
+page):
+
+```javascript
+chrome.storage.local.set({ apiUrl: "https://your-api.example/predict",
+                           apiKey: "your-api-key" });
+```
+
+A verdict shows the hard label, the model's phishing score, and up to four
+reasons. Errors, timeouts, 401s and rate limits render as **"Could not
+complete"** — never as "Safe" — and whitelisted / not-applicable results are
+shown as their own states.
 
 ---
 
-## 🌐 Production Deployment
+## API reference
 
-To host the API server in production (e.g., on [Render](https://render.com/) or Heroku):
+### `POST /predict`
 
-1. Deploy the backend using the included [`render.yaml`](render.yaml) blueprint or by binding the server to a Gunicorn start command:
-   ```bash
-   gunicorn app:app
-   ```
-2. Update the `API_URL` variable inside the Chrome Extension's [`popup.js`](Phishing_detection_app/chrome_extension/popup.js):
-   ```javascript
-   // Replace localhost with your production server URL
-   const API_URL = 'https://your-phishing-detection-api.onrender.com/predict';
-   ```
+```bash
+curl -X POST http://127.0.0.1:5000/predict \
+  -H "Content-Type: application/json" \
+  -d '{"url": "http://example-login.verify-account.top/signin"}'
+```
+
+```json
+{
+  "prediction": 1,
+  "score": 0.9631,
+  "model": "random_forest.joblib",
+  "reasons": [
+    "URL contains '@' - text before it is ignored by browsers",
+    "No registration/DNS intelligence available for this domain",
+    "Domain is under 6 months old, or WHOIS was unavailable",
+    "Page inspection unavailable: the site could not be fetched (blocked, unreachable or timed out)"
+  ]
+}
+```
+
+* `prediction` — `0` legitimate, `1` phishing (also returned for
+  whitelisted / skipped results, with `analysis` set instead of `reasons`).
+* `score` — model's `P(phishing)`, **uncalibrated**, `null` when the artifact
+  has no `predict_proba`.
+* `reasons` — empty list means "nothing to report", which is **not** the same
+  as "safe".
+
+Errors are structured and never leak internals:
+
+```json
+{"error": {"code": "rate_limited", "message": "Too many requests, slow down", "request_id": "1f2e3d4c5b6a"}}
+```
+
+| Situation | Status |
+|---|---|
+| Missing/invalid `X-API-Key` (when `API_KEY` is set) | `401 unauthorized` |
+| Over the per-client limit | `429 rate_limited` + `Retry-After` |
+| Body not JSON / missing `url` / URL too long | `400` |
+| Extracted features violate the schema | `422 schema_violation` |
+| `chrome://`, `file://`, `data:` … | `200` + `{"analysis":"skipped"}` — **never fetched** |
+| Whitelisted domain | `200` + `{"analysis":"whitelisted"}` |
+
+### `GET /health`
+
+Liveness probe used by `render.yaml`: `{"status":"ok","model":"<artifact>"}`.
 
 ---
 
-## 📁 File Structure
+## Configuration
 
-* [`app.py`](app.py) - Flask web API exposing `/predict` and `/health`.
-* [`URLFeatureExtraction.py`](URLFeatureExtraction.py) - Legacy feature extraction module (URL syntax, WHOIS, page structure). Being replaced by a single unified pipeline in milestone P2.
-* [`train_model.py`](train_model.py) - Training script; writes explicitly named artifacts to `models/`.
-* [`models/`](models/) - Model registry: `random_forest.joblib`, `xgboost.joblib`, `registry.json`, and [`MODEL_CARD.md`](models/MODEL_CARD.md) (provenance, schema, known limitations).
-* [`tests/`](tests/) - Offline test suite (registry integrity, API smoke, lexical features).
-* [`Phishing_detection_app/chrome_extension/`](Phishing_detection_app/chrome_extension/) - Chrome Extension assets (`manifest.json`, `popup.html`, `popup.js`).
-* [`DataFiles/`](DataFiles/) - Dataset CSVs plus [`DATASETS.md`](DataFiles/DATASETS.md) (measured statistics, provenance, known leakage).
+Every setting defaults safely; production overrides are environment variables
+only (see [`phishguard/config.py`](phishguard/config.py)):
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `MODEL_NAME` | `random_forest.joblib` | artifact to serve (bare filename in `models/`) |
+| `API_KEY` | unset | enables `X-API-Key` auth on `/predict` |
+| `RATE_LIMIT_PER_MINUTE` | `60` | sliding window per client |
+| `MAX_URL_LENGTH` | `2048` | request URL cap |
+| `MAX_REQUEST_BYTES` | `32768` | body cap |
+| `CORS_ORIGINS` | extension + localhost | comma-separated extra origins |
+| `TRUST_PROXY` | `0` | trust `X-Forwarded-For` behind a proxy you control |
+| `LOG_LEVEL` | `INFO` | JSON access log level (URLs are never logged) |
+
+## Production deployment
+
+```bash
+pip install -r requirements.txt
+gunicorn --workers 2 --threads 4 --timeout 30 app:app
+```
+
+The included [`render.yaml`](render.yaml) blueprint does this for you. On any
+internet-facing deploy: set `API_KEY`, point the extension's `apiUrl` at the
+service, and keep `CORS_ORIGINS` tight. Threat model and accepted residual
+risks: [`docs/threat-model.md`](docs/threat-model.md).
+
+---
+
+## Project structure
+
+| Path | Role |
+|---|---|
+| [`app.py`](app.py) | Flask API — validation, auth, rate limiting, verdict contract |
+| [`phishguard/`](phishguard/) | package: feature schema, splitting, explainability, SSRF guard, config |
+| [`URLFeatureExtraction.py`](URLFeatureExtraction.py) | URL syntax + DNS/WHOIS + page extraction → features-v2 |
+| [`train_model.py`](train_model.py) | trains all experiments, writes artifacts + `registry.json` |
+| [`evaluate_models.py`](evaluate_models.py) | rescored shipped artifacts vs `metrics.json` (`--check` gate) |
+| [`models/`](models/) | four `.joblib` artifacts, `registry.json`, `metrics.json`, [`MODEL_CARD.md`](models/MODEL_CARD.md) |
+| [`tests/`](tests/) | 180 offline tests — schema, splits, registry, API, SSRF, rate limits |
+| [`Phishing_detection_app/chrome_extension/`](Phishing_detection_app/chrome_extension/) | extension (`manifest.json`, `popup.html`, `popup.js`) |
+| [`DataFiles/`](DataFiles/) | dataset CSVs + [`DATASETS.md`](DataFiles/DATASETS.md) (measured stats, provenance) |
+| [`docs/`](docs/) | [`METHODOLOGY.md`](docs/METHODOLOGY.md), [`threat-model.md`](docs/threat-model.md) |
+
+## Documentation
+
+| Document | What it settles |
+|---|---|
+| [`docs/METHODOLOGY.md`](docs/METHODOLOGY.md) | dataset distortions, split protocols, all measured results, baselines, reproducibility, limitations |
+| [`docs/threat-model.md`](docs/threat-model.md) | trust boundaries, threats ↔ mitigations ↔ tests, accepted residual risks |
+| [`models/MODEL_CARD.md`](models/MODEL_CARD.md) | artifact provenance, schema, performance, serving guidance |
+| [`DataFiles/DATASETS.md`](DataFiles/DATASETS.md) | file inventory, measured statistics, provenance/licence gaps |
+
+## Continuous integration
+
+`CI` runs on every PR: `ruff`, the offline test matrix (Python 3.11–3.13),
+`pip-audit` against known CVEs, extension syntax checks, and the benchmark
+gates (`train_model.py --check`, `evaluate_models.py --check`) so a metric
+drift fails the build instead of shipping.
