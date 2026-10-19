@@ -41,6 +41,40 @@ jobs:
       - name: Dependency audit
         run: pip install pip-audit && pip-audit -r requirements.txt
 
+  prod-smoke:
+    # Boots the API with the exact production start command from render.yaml
+    # (gunicorn) and exercises the two verdict paths that need no outbound
+    # network -- an unsupported scheme and a whitelisted domain. A broken
+    # import, a registry mismatch or a CORS change fails here, before deploy,
+    # instead of after it.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install runtime dependencies
+        run: pip install -r requirements.txt
+      - name: Boot with the production command and probe /health
+        run: |
+          gunicorn --workers 2 --threads 4 --timeout 30 app:app &
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8000/health; then echo; break; fi
+            sleep 2
+          done
+          curl -sf http://127.0.0.1:8000/health
+      - name: Probe /predict verdict paths (no outbound network)
+        run: |
+          curl -sf -X POST http://127.0.0.1:8000/predict \
+            -H 'Content-Type: application/json' \
+            -d '{"url":"chrome://version"}'
+          echo
+          curl -sf -X POST http://127.0.0.1:8000/predict \
+            -H 'Content-Type: application/json' \
+            -d '{"url":"https://github.com"}'
+          echo
+
   benchmark:
     # Reproducibility gates from docs/METHODOLOGY.md:
     #   1. evaluate_models --check: every shipped artifact rescored on the
