@@ -169,7 +169,7 @@ Each of these features are explained and the coded below:
 
 # importing required packages for this section
 import socket
-from datetime import datetime
+from datetime import UTC, datetime
 
 import whois
 
@@ -215,6 +215,25 @@ If age of domain > 12 months, the vlaue of this feature is 1 (phishing) else 0 (
 """
 
 # 13.Survival time of domain: The difference between termination time and creation time (Domain_Age)
+def _as_naive_datetime(value):
+  """Normalise a WHOIS timestamp to a naive ``datetime``.
+
+  python-whois returns timezone-aware datetimes for some registries (e.g.
+  Verisign/.com) and naive ones for others. Subtracting one from the other
+  raises ``TypeError`` and used to take the whole scan down with a 500, so
+  aware values are converted to UTC and stripped. Anything that is not a
+  datetime (or cannot be converted) returns ``None`` and the caller degrades
+  to the "no intelligence" value, exactly like a failed lookup.
+  """
+  if not isinstance(value, datetime):
+    return None
+  if value.tzinfo is None:
+    return value
+  try:
+    return value.astimezone(UTC).replace(tzinfo=None)
+  except Exception:
+    return None
+
 def domainAge(domain_name):
   try:
     creation_date = domain_name.creation_date
@@ -232,7 +251,14 @@ def domainAge(domain_name):
   elif ((type(expiration_date) is list) or (type(creation_date) is list)):
       return 1
   else:
-    ageofdomain = abs((expiration_date - creation_date).days)
+    creation = _as_naive_datetime(creation_date)
+    expiration = _as_naive_datetime(expiration_date)
+    if (creation is None) or (expiration is None):
+      return 1
+    try:
+      ageofdomain = abs((expiration - creation).days)
+    except Exception:
+      return 1
     if ((ageofdomain/30) < 6):
       age = 1
     else:
@@ -262,8 +288,14 @@ def domainEnd(domain_name):
   elif (type(expiration_date) is list):
       return 1
   else:
+    expiration = _as_naive_datetime(expiration_date)
+    if expiration is None:
+      return 1
     today = datetime.now()
-    end = abs((expiration_date - today).days)
+    try:
+      end = abs((expiration - today).days)
+    except Exception:
+      return 1
     if ((end/30) < 6):
       end = 0
     else:

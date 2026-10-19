@@ -1,11 +1,17 @@
 """Lexical (offline) feature extraction tests.
 
 These lock the semantics of the URL-syntax features that do not require
-network access. The WHOIS/DNS/HTML features are exercised separately in the
-P2 pipeline rewrite.
+network access. The live WHOIS/DNS/HTML path is exercised end to end by the
+``network``-marked tests; the WHOIS date arithmetic is covered offline below,
+because mixing timezone-aware and naive datetimes from python-whois used to
+crash ``/predict`` with a 500.
 """
 
+from datetime import UTC, datetime
+
 from URLFeatureExtraction import (
+    domainAge,
+    domainEnd,
     getDepth,
     getLength,
     haveAtSign,
@@ -67,3 +73,38 @@ def test_having_ip_inspects_hostname_not_whole_url():
     assert havingIP("http://example.com/192.168.1.10/") == 0
     assert havingIP("https://example.com/search?q=10.0.0.1") == 0
     assert havingIP(SAFE_URL) == 0
+
+
+class _WhoisStub:
+    """Minimal stand-in for a python-whois result object."""
+
+    def __init__(self, creation_date, expiration_date):
+        self.creation_date = creation_date
+        self.expiration_date = expiration_date
+
+
+def test_domain_dates_accept_timezone_aware_values():
+    """python-whois returns timezone-aware datetimes for some registries
+    (Verisign/.com does). Subtracting those from naive ones raised TypeError
+    and took the whole /predict request down with a 500 -- live regression
+    caught by scanning http://example.com/login."""
+    stub = _WhoisStub(
+        datetime(2015, 6, 1, tzinfo=UTC),
+        datetime(2030, 6, 1, tzinfo=UTC),
+    )
+    assert domainAge(stub) == 0  # 15 years old: not a young domain
+    assert domainEnd(stub) == 1  # expires well beyond six months
+
+
+def test_domain_dates_mixed_aware_and_naive_values():
+    stub = _WhoisStub(datetime(2015, 6, 1), datetime(2030, 6, 1, tzinfo=UTC))
+    assert domainAge(stub) == 0
+
+
+def test_domain_dates_unusable_values_degrade_to_unavailable():
+    """Anything python-whois cannot hand back as a timestamp must behave like
+    a failed lookup (value 1), never raise."""
+    assert domainAge(_WhoisStub("not-a-date", datetime(2030, 1, 1))) == 1
+    assert domainAge(_WhoisStub(None, datetime(2030, 1, 1))) == 1
+    assert domainEnd(_WhoisStub(datetime(2015, 1, 1), "not-a-date")) == 1
+    assert domainEnd(_WhoisStub(datetime(2015, 1, 1), None)) == 1
