@@ -21,16 +21,26 @@ Measured with `pandas` over `5.urldata.csv`:
 - **Shape:** 10,000 rows × 18 columns (`Domain`, 16 features, `Label`)
 - **Class distribution:** 5,000 legitimate (`0`) / 5,000 phishing (`1`) — balanced
 - **Unique domains:** 3,553 → 6,447 rows share a domain with another row
-- **Unique feature vectors (features only):** **771** → 9,229 rows are duplicates
-  of some other row's feature vector
+- **Unique feature vectors (legacy 16 features):** **771** → 9,229 rows are
+  duplicates of some other row's feature vector
+- **Unique feature vectors (features-v2, 15 features):** **581** — dropping the
+  dead `Web_Traffic` column merges further rows together. This is the count
+  that matters for training: the model sees at most 581 distinct inputs.
+- **Feature vectors carrying both labels (features-v2):** 94, covering 6,593
+  rows — the representation cannot separate them (information ceiling, not a
+  modelling failure)
 
 ### Consequence (why the old metrics were withdrawn)
 
-Because only 771 distinct feature vectors exist, the upstream procedure
+Because only 771 distinct feature vectors (581 under features-v2) exist for
+10,000 rows, the upstream procedure
 (`train_test_split(test_size=0.2, random_state=42)`) places near-identical rows
 in both train and test. Reported accuracies from that split measure
-memorisation, not generalisation, and are therefore recorded in
-[`models/MODEL_CARD.md`](../models/MODEL_CARD.md) as `UNVERIFIED`.
+memorisation, not generalisation: re-measured here, the leak is worth
+**8.4–12.2 accuracy points** depending on the model. The legacy figures are
+recorded in [`models/MODEL_CARD.md`](../models/MODEL_CARD.md) for traceability
+only, and the corrected protocol is documented in
+[`docs/METHODOLOGY.md`](../docs/METHODOLOGY.md).
 
 ### Schema inconsistencies found
 

@@ -1,10 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "Phishing Detector",
-  "version": "1.0",
-  "description": "Automatically detect phishing URLs",
-  "permissions": ["activeTab", "tabs", "scripting"],
+  "name": "PhishGuard - Phishing Detector",
+  "version": "1.1.0",
+  "description": "Scan the current page against the PhishGuard AI phishing-detection API",
+  "permissions": ["activeTab", "tabs", "storage"],
   "action": {
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_title": "Scan current page with PhishGuard"
   }
 }

@@ -1,14 +1,10 @@
 {
   "random_forest.joblib": {
     "algorithm": "RandomForestClassifier",
-    "source_artifact": "xg_boost.pkl",
-    "source_sha256": "6494ecfa8870b852591f00dcbede03a336dd58cc4cb53ac633bd4d1d3b3223fd",
-    "artifact_sha256": "e8dd5405e647ed03fc0538327dbe4f5a65ffea228e2eb9c069165a0dca7083b7",
-    "trained_with": {
-      "scikit_learn": "1.7.2",
-      "scikit_learn_evidence": "InconsistentVersionWarning emitted when loading the source pickle (estimator pickle state declares 1.7.2)",
-      "n_estimators": 500
-    },
+    "artifact_sha256": "7c336ebfd14e0b1b35397ac632ea6acb39efc362826dc58b031d4e60bfa5afb3",
+    "artifact_size_bytes": 13453865,
+    "feature_schema_version": "features-v2",
+    "feature_schema_fingerprint": "f0099fbf914b0fe900ef1e14f42db8c86333362f7942a93830c3e2ab2ec84b52",
     "feature_columns": [
       "Have_IP",
       "Have_At",
@@ -19,7 +15,6 @@
       "TinyURL",
       "Prefix/Suffix",
       "DNS_Record",
-      "Web_Traffic",
       "Domain_Age",
       "Domain_End",
       "iFrame",
@@ -27,27 +22,111 @@
       "Right_Click",
       "Web_Forwards"
     ],
-    "dataset": "DataFiles/5.urldata.csv",
-    "split": "random 80/20, random_state=42 (LEAKED \u2014 see models/MODEL_CARD.md)",
-    "migrated_utc": "2026-10-07T04:04:17+00:00",
-    "parity_verified": true,
     "label_semantics": {
       "0": "legitimate",
       "1": "phishing"
     },
-    "status": "legacy-baseline (replaced by retrained model in milestone P2 \u2014 metrics from this artifact are leaked and must not be quoted)"
+    "dataset": {
+      "path": "DataFiles\\5.urldata.csv",
+      "sha256": "5c74254ce576a730beaea2ed15c3acbfd7e02dad853b552d248b5af5a034b188",
+      "rows": 10000,
+      "rows_unique": 4374,
+      "rows_training_pool": 4366,
+      "mixed_label_rows_dropped": 8
+    },
+    "split": {
+      "protocol": "domain_disjoint",
+      "seed": 42,
+      "test_fraction": 0.2,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "train_domains": 2839,
+      "test_domains": 711,
+      "domain_overlap": 0,
+      "deduplicated": true
+    },
+    "training": {
+      "command": "python train_model.py --seed 42",
+      "seed": 42,
+      "trained_at_utc": "2026-10-07T07:44:40+00:00",
+      "hyperparameters": {
+        "algorithm": "RandomForestClassifier",
+        "n_estimators": 500,
+        "class_weight": "balanced",
+        "n_jobs": 1,
+        "random_state": 42
+      },
+      "library_versions": {
+        "python": "3.14.3",
+        "scikit_learn": "1.9.0",
+        "xgboost": "3.4.1",
+        "lightgbm": "4.7.0",
+        "pandas": "3.0.5",
+        "numpy": "2.5.2"
+      }
+    },
+    "evaluation": {
+      "protocol": "domain_disjoint",
+      "feature_set": "url_domain_page",
+      "metrics": {
+        "accuracy": 0.747153,
+        "precision": 0.972509,
+        "recall": 0.733161,
+        "f1": 0.836041,
+        "roc_auc": 0.849576,
+        "pr_auc": 0.974385,
+        "fpr": 0.150943,
+        "fnr": 0.266839,
+        "ci95": {
+          "accuracy": [
+            0.717368,
+            0.774784
+          ],
+          "precision": [
+            0.955812,
+            0.983009
+          ],
+          "recall": [
+            0.700861,
+            0.763151
+          ],
+          "fpr": [
+            0.095098,
+            0.231205
+          ],
+          "fnr": [
+            0.236849,
+            0.299139
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 566,
+          "fp": 16,
+          "tn": 90,
+          "fn": 206
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 92.068104,
+        "p95_ms": 108.25418,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "metrics_status": "reproduced",
+      "verify_command": "python evaluate_models.py --check"
+    },
+    "parity_verified": true,
+    "status": "current"
   },
   "xgboost.joblib": {
     "algorithm": "XGBClassifier",
-    "source_artifact": "xgboost_model.pkl",
-    "source_sha256": "2c5d46be700f18033e84b96507c1d5d52059bf50b48f4705d1fbd2043ba2cc92",
-    "artifact_sha256": "67017f56dce4bb38cd9d4ae03bf9221e970d55a80d2d7dcb95206a0674737ce8",
-    "trained_with": {
-      "xgboost": "unknown",
-      "xgboost_evidence": "not recoverable from artifact; recorded as unknown rather than guessed",
-      "n_estimators": 500,
-      "hyperparameters": "n_estimators=500, max_depth=8, learning_rate=0.02, subsample=0.8, colsample_bytree=0.8, random_state=42 (see train_model.py)"
-    },
+    "artifact_sha256": "a5a7ffefb6cda8ce51aa6fe49024455af8495789f9e66b852e5bcf7d700f3c8a",
+    "artifact_size_bytes": 933054,
+    "feature_schema_version": "features-v2",
+    "feature_schema_fingerprint": "f0099fbf914b0fe900ef1e14f42db8c86333362f7942a93830c3e2ab2ec84b52",
     "feature_columns": [
       "Have_IP",
       "Have_At",
@@ -58,7 +137,6 @@
       "TinyURL",
       "Prefix/Suffix",
       "DNS_Record",
-      "Web_Traffic",
       "Domain_Age",
       "Domain_End",
       "iFrame",
@@ -66,14 +144,361 @@
       "Right_Click",
       "Web_Forwards"
     ],
-    "dataset": "DataFiles/5.urldata.csv",
-    "split": "random 80/20, random_state=42 (LEAKED \u2014 see models/MODEL_CARD.md)",
-    "migrated_utc": "2026-10-07T04:04:18+00:00",
-    "parity_verified": true,
     "label_semantics": {
       "0": "legitimate",
       "1": "phishing"
     },
-    "status": "legacy-baseline (replaced by retrained model in milestone P2 \u2014 metrics from this artifact are leaked and must not be quoted)"
+    "dataset": {
+      "path": "DataFiles\\5.urldata.csv",
+      "sha256": "5c74254ce576a730beaea2ed15c3acbfd7e02dad853b552d248b5af5a034b188",
+      "rows": 10000,
+      "rows_unique": 4374,
+      "rows_training_pool": 4366,
+      "mixed_label_rows_dropped": 8
+    },
+    "split": {
+      "protocol": "domain_disjoint",
+      "seed": 42,
+      "test_fraction": 0.2,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "train_domains": 2839,
+      "test_domains": 711,
+      "domain_overlap": 0,
+      "deduplicated": true
+    },
+    "training": {
+      "command": "python train_model.py --seed 42",
+      "seed": 42,
+      "trained_at_utc": "2026-10-07T07:44:40+00:00",
+      "hyperparameters": {
+        "algorithm": "XGBClassifier",
+        "n_estimators": 500,
+        "max_depth": 8,
+        "learning_rate": 0.02,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "tree_method": "hist",
+        "eval_metric": "logloss",
+        "nthread": 1,
+        "random_state": 42,
+        "scale_pos_weight": 0.136156
+      },
+      "library_versions": {
+        "python": "3.14.3",
+        "scikit_learn": "1.9.0",
+        "xgboost": "3.4.1",
+        "lightgbm": "4.7.0",
+        "pandas": "3.0.5",
+        "numpy": "2.5.2"
+      }
+    },
+    "evaluation": {
+      "protocol": "domain_disjoint",
+      "feature_set": "url_domain_page",
+      "metrics": {
+        "accuracy": 0.725513,
+        "precision": 0.980108,
+        "recall": 0.702073,
+        "f1": 0.818113,
+        "roc_auc": 0.863195,
+        "pr_auc": 0.979559,
+        "fpr": 0.103774,
+        "fnr": 0.297927,
+        "ci95": {
+          "accuracy": [
+            0.69506,
+            0.754001
+          ],
+          "precision": [
+            0.964735,
+            0.988857
+          ],
+          "recall": [
+            0.668874,
+            0.73327
+          ],
+          "fpr": [
+            0.058939,
+            0.176323
+          ],
+          "fnr": [
+            0.26673,
+            0.331126
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 542,
+          "fp": 11,
+          "tn": 95,
+          "fn": 230
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 10.196146,
+        "p95_ms": 14.53388,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "metrics_status": "reproduced",
+      "verify_command": "python evaluate_models.py --check"
+    },
+    "parity_verified": true,
+    "status": "current"
+  },
+  "logistic_regression.joblib": {
+    "algorithm": "LogisticRegression",
+    "artifact_sha256": "ebfcd68d090e2f25c886f1e9e32998077a9b59101360ab27150eeef42ffa7044",
+    "artifact_size_bytes": 1439,
+    "feature_schema_version": "features-v2",
+    "feature_schema_fingerprint": "f0099fbf914b0fe900ef1e14f42db8c86333362f7942a93830c3e2ab2ec84b52",
+    "feature_columns": [
+      "Have_IP",
+      "Have_At",
+      "URL_Length",
+      "URL_Depth",
+      "Redirection",
+      "https_Domain",
+      "TinyURL",
+      "Prefix/Suffix",
+      "DNS_Record",
+      "Domain_Age",
+      "Domain_End",
+      "iFrame",
+      "Mouse_Over",
+      "Right_Click",
+      "Web_Forwards"
+    ],
+    "label_semantics": {
+      "0": "legitimate",
+      "1": "phishing"
+    },
+    "dataset": {
+      "path": "DataFiles\\5.urldata.csv",
+      "sha256": "5c74254ce576a730beaea2ed15c3acbfd7e02dad853b552d248b5af5a034b188",
+      "rows": 10000,
+      "rows_unique": 4374,
+      "rows_training_pool": 4366,
+      "mixed_label_rows_dropped": 8
+    },
+    "split": {
+      "protocol": "domain_disjoint",
+      "seed": 42,
+      "test_fraction": 0.2,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "train_domains": 2839,
+      "test_domains": 711,
+      "domain_overlap": 0,
+      "deduplicated": true
+    },
+    "training": {
+      "command": "python train_model.py --seed 42",
+      "seed": 42,
+      "trained_at_utc": "2026-10-07T07:44:40+00:00",
+      "hyperparameters": {
+        "algorithm": "LogisticRegression",
+        "C": 1.0,
+        "max_iter": 2000,
+        "class_weight": "balanced",
+        "solver": "lbfgs",
+        "random_state": 42
+      },
+      "library_versions": {
+        "python": "3.14.3",
+        "scikit_learn": "1.9.0",
+        "xgboost": "3.4.1",
+        "lightgbm": "4.7.0",
+        "pandas": "3.0.5",
+        "numpy": "2.5.2"
+      }
+    },
+    "evaluation": {
+      "protocol": "domain_disjoint",
+      "feature_set": "url_domain_page",
+      "metrics": {
+        "accuracy": 0.694761,
+        "precision": 0.984615,
+        "recall": 0.663212,
+        "f1": 0.79257,
+        "roc_auc": 0.875275,
+        "pr_auc": 0.9814,
+        "fpr": 0.075472,
+        "fnr": 0.336788,
+        "ci95": {
+          "accuracy": [
+            0.663506,
+            0.724319
+          ],
+          "precision": [
+            0.969939,
+            0.992184
+          ],
+          "recall": [
+            0.629138,
+            0.69567
+          ],
+          "fpr": [
+            0.038736,
+            0.141902
+          ],
+          "fnr": [
+            0.30433,
+            0.370862
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 512,
+          "fp": 8,
+          "tn": 98,
+          "fn": 260
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 3.83287,
+        "p95_ms": 6.74145,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "metrics_status": "reproduced",
+      "verify_command": "python evaluate_models.py --check"
+    },
+    "parity_verified": true,
+    "status": "current"
+  },
+  "lightgbm.joblib": {
+    "algorithm": "LGBMClassifier",
+    "artifact_sha256": "bd8be6d03ba06faad8d69fbc2928f32b41653cda831714747537d245d3b147a1",
+    "artifact_size_bytes": 1707828,
+    "feature_schema_version": "features-v2",
+    "feature_schema_fingerprint": "f0099fbf914b0fe900ef1e14f42db8c86333362f7942a93830c3e2ab2ec84b52",
+    "feature_columns": [
+      "Have_IP",
+      "Have_At",
+      "URL_Length",
+      "URL_Depth",
+      "Redirection",
+      "https_Domain",
+      "TinyURL",
+      "Prefix/Suffix",
+      "DNS_Record",
+      "Domain_Age",
+      "Domain_End",
+      "iFrame",
+      "Mouse_Over",
+      "Right_Click",
+      "Web_Forwards"
+    ],
+    "label_semantics": {
+      "0": "legitimate",
+      "1": "phishing"
+    },
+    "dataset": {
+      "path": "DataFiles\\5.urldata.csv",
+      "sha256": "5c74254ce576a730beaea2ed15c3acbfd7e02dad853b552d248b5af5a034b188",
+      "rows": 10000,
+      "rows_unique": 4374,
+      "rows_training_pool": 4366,
+      "mixed_label_rows_dropped": 8
+    },
+    "split": {
+      "protocol": "domain_disjoint",
+      "seed": 42,
+      "test_fraction": 0.2,
+      "train_rows": 3488,
+      "test_rows": 878,
+      "train_domains": 2839,
+      "test_domains": 711,
+      "domain_overlap": 0,
+      "deduplicated": true
+    },
+    "training": {
+      "command": "python train_model.py --seed 42",
+      "seed": 42,
+      "trained_at_utc": "2026-10-07T07:44:40+00:00",
+      "hyperparameters": {
+        "algorithm": "LGBMClassifier",
+        "n_estimators": 500,
+        "learning_rate": 0.02,
+        "num_leaves": 31,
+        "subsample": 0.8,
+        "colsample_bytree": 0.8,
+        "n_jobs": 1,
+        "deterministic": true,
+        "force_row_wise": true,
+        "verbose": -1,
+        "random_state": 42,
+        "scale_pos_weight": 0.136156
+      },
+      "library_versions": {
+        "python": "3.14.3",
+        "scikit_learn": "1.9.0",
+        "xgboost": "3.4.1",
+        "lightgbm": "4.7.0",
+        "pandas": "3.0.5",
+        "numpy": "2.5.2"
+      }
+    },
+    "evaluation": {
+      "protocol": "domain_disjoint",
+      "feature_set": "url_domain_page",
+      "metrics": {
+        "accuracy": 0.724374,
+        "precision": 0.97491,
+        "recall": 0.704663,
+        "f1": 0.818045,
+        "roc_auc": 0.859798,
+        "pr_auc": 0.97899,
+        "fpr": 0.132075,
+        "fnr": 0.295337,
+        "ci95": {
+          "accuracy": [
+            0.693888,
+            0.752904
+          ],
+          "precision": [
+            0.958329,
+            0.984997
+          ],
+          "recall": [
+            0.671533,
+            0.735767
+          ],
+          "fpr": [
+            0.080331,
+            0.209555
+          ],
+          "fnr": [
+            0.264233,
+            0.328467
+          ]
+        },
+        "counts": {
+          "n_samples": 878,
+          "n_positive": 772,
+          "n_negative": 106,
+          "tp": 544,
+          "fp": 14,
+          "tn": 92,
+          "fn": 228
+        }
+      },
+      "latency_ms": {
+        "mean_ms": 4.530632,
+        "p95_ms": 5.688765,
+        "rounds": 100,
+        "note": "single-row predict() on this machine; not comparable across hardware"
+      },
+      "metrics_status": "reproduced",
+      "verify_command": "python evaluate_models.py --check"
+    },
+    "parity_verified": true,
+    "status": "current"
   }
 }

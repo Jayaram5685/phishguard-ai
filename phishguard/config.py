@@ -2,6 +2,29 @@
 
 Every setting has a safe default so the app boots with zero configuration;
 production overrides come from environment variables only (never committed).
+
+Environment variables (all optional):
+
+``MODEL_NAME``
+    Artifact served by the API. Default ``random_forest.joblib``; must be a
+    bare filename inside ``models/`` (path separators are rejected).
+``API_KEY``
+    When set, ``/predict`` requires a matching ``X-API-Key`` header.
+``RATE_LIMIT_PER_MINUTE``
+    Per-client sliding window. Default ``60``, minimum ``1``.
+``MAX_URL_LENGTH``
+    Longest URL accepted by ``/predict``. Default ``2048``, minimum ``64``.
+``MAX_REQUEST_BYTES``
+    Request body cap (``MAX_CONTENT_LENGTH``). Default ``32768``, minimum
+    ``512``.
+``CORS_ORIGINS``
+    Extra comma-separated origins appended to the extension/localhost
+    allowlist.
+``TRUST_PROXY``
+    ``1``/``true`` to trust the first ``X-Forwarded-For`` hop (only behind a
+    reverse proxy you control).
+``LOG_LEVEL``
+    Python logging level for the structured JSON access log. Default ``INFO``.
 """
 
 from __future__ import annotations
@@ -55,6 +78,17 @@ class Settings:
         )
         api_key = os.environ.get("API_KEY", "").strip() or None
         trust_proxy = os.environ.get("TRUST_PROXY", "").strip().lower() in _TRUE_VALUES
+        model_name = os.environ.get("MODEL_NAME", "").strip() or "random_forest.joblib"
+        if (
+            "/" in model_name
+            or "\\" in model_name
+            or model_name in {".", ".."}
+            or not model_name.endswith(".joblib")
+        ):
+            raise ValueError(
+                "MODEL_NAME must be a bare *.joblib filename inside models/ "
+                f"(got {model_name!r})"
+            )
         return cls(
             cors_extra_origins=extra,
             cors_origins=DEFAULT_CORS_ORIGINS + extra,
@@ -62,5 +96,7 @@ class Settings:
             api_key=api_key,
             trust_proxy=trust_proxy,
             max_url_length=_env_int("MAX_URL_LENGTH", 2048, minimum=64),
+            max_request_bytes=_env_int("MAX_REQUEST_BYTES", 32_768, minimum=512),
+            model_name=model_name,
             log_level=os.environ.get("LOG_LEVEL", "INFO").upper(),
         )

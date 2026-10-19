@@ -188,3 +188,42 @@ def test_api_key_enforced_when_configured(monkeypatch):
         headers={"X-API-Key": "sekrit-key"},
     )
     assert allowed.status_code == 200
+
+
+def test_whitelisted_verdict_is_not_a_model_verdict(client):
+    """Allow-list short-circuits never reach a model, so they carry no score."""
+    body = client.post("/predict", json={"url": "https://www.google.com/"}).get_json()
+    assert body["prediction"] == 0
+    assert body.get("score") is None
+    assert body.get("reasons") is None
+
+
+def test_predict_full_pipeline_returns_score_model_and_reasons(client):
+    """End-to-end verdict with **zero** outbound traffic: the SSRF guard blocks
+    ``localhost`` before any DNS/WHOIS/HTTP call, so extraction degrades to its
+    no-intelligence path and still reaches the shipped model."""
+    response = client.post(
+        "/predict", json={"url": "http://localhost:8080/account/verify-session"}
+    )
+    assert response.status_code == 200
+    body = response.get_json()
+
+    assert body["prediction"] in (0, 1)
+    assert body["model"] == app_module.settings.model_name
+    assert isinstance(body["score"], float)
+    assert 0.0 <= body["score"] <= 1.0
+    assert isinstance(body["reasons"], list)
+    # DNS/WHOIS never ran for an internal host, and the extractor says so.
+    assert any("registration/DNS intelligence" in reason for reason in body["reasons"])
+
+
+def test_predict_rejects_client_supplied_verdict_fields(client):
+    """Clients cannot smuggle a score, label or feature vector past the model."""
+    response = client.post(
+        "/predict",
+        json={"url": "chrome://extensions", "prediction": 0, "score": 0.0, "features": {}},
+    )
+    assert response.status_code == 200
+    body = response.get_json()
+    assert body["analysis"] == "skipped"
+    assert body.get("score") is None

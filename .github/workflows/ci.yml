@@ -41,6 +41,32 @@ jobs:
       - name: Dependency audit
         run: pip install pip-audit && pip-audit -r requirements.txt
 
+  benchmark:
+    # Reproducibility gates from docs/METHODOLOGY.md:
+    #   1. evaluate_models --check: every shipped artifact rescored on the
+    #      committed split must still match models/metrics.json. Artifacts are
+    #      fixed bytes, so this gate stays tight (5e-3).
+    #   2. train_model --check: refit all 24 experiments and compare metrics.
+    #      Tolerance is looser (2e-2) because XGBoost's hist tree builder is
+    #      not bit-reproducible across platforms: Linux/3.12 vs the training
+    #      machine (Windows/3.14) drifts up to 1.04e-2 on one ablation. Every
+    #      real regression measured here -- wrong split, lost seed, changed
+    #      feature set -- moves metrics by 8+ points, so 2e-2 still catches
+    #      them while ignoring float noise.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Artifact parity (shipped models vs metrics.json)
+        run: python evaluate_models.py --check --tolerance 0.005
+      - name: Benchmark parity (refit vs metrics.json)
+        run: python train_model.py --check --tolerance 0.02 --quiet
+
   extension-lint:
     runs-on: ubuntu-latest
     steps:

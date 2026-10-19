@@ -7,6 +7,17 @@ Security posture (milestone P1):
 * Origin allowlist (extension + localhost) instead of wide-open CORS
 * Optional API key (``API_KEY`` env) for automated clients
 * Request IDs, structured JSON access logs, security headers
+
+Feature contract (milestone P2): the extractor emits a features-v2 mapping
+(:mod:`phishguard.features`), validated in canonical order before it reaches
+a model; the registry's ``feature_columns`` must equal the schema exactly
+(fail-fast at import).
+
+Verdict contract: ``/predict`` returns the hard label, the model's own
+phishing probability (``score``), the artifact that answered (``model``) and
+the feature-level ``reasons`` behind the verdict (:mod:`phishguard.explain`).
+Errors stay structured (``{"error": {code, message, request_id}}``) and never
+expose internals.
 """
 
 import ipaddress
@@ -19,12 +30,13 @@ import uuid
 from urllib.parse import urlsplit
 
 import joblib
-import pandas as pd
 from flask import Flask, Response, g, jsonify, request
 from flask_cors import CORS
 from werkzeug.exceptions import HTTPException
 
 from phishguard.config import Settings
+from phishguard.explain import explain
+from phishguard.features import FEATURE_NAMES, SchemaError, frame_from_features
 from phishguard.security.ratelimit import SlidingWindowRateLimiter
 from phishguard.security.ssrf import ALLOWED_SCHEMES, scheme_of
 from URLFeatureExtraction import featureExtraction
@@ -45,6 +57,11 @@ if settings.model_name not in MODEL_REGISTRY:
     raise RuntimeError(f"model {settings.model_name!r} is not present in models/registry.json")
 
 FEATURE_COLUMNS = MODEL_REGISTRY[settings.model_name]["feature_columns"]
+if FEATURE_COLUMNS != FEATURE_NAMES:
+    raise RuntimeError(
+        "registry feature_columns do not match features-v2: "
+        f"registry={FEATURE_COLUMNS!r} schema={FEATURE_NAMES!r}"
+    )
 MODEL_PATH = os.path.join(MODELS_DIR, settings.model_name)
 model = joblib.load(MODEL_PATH)
 
@@ -249,8 +266,21 @@ def predict():
 
     try:
         features = featureExtraction(url)
-        frame = pd.DataFrame([features], columns=FEATURE_COLUMNS)
+    except SchemaError as exc:
+        _log_event(
+            "schema_violation",
+            level=logging.WARNING,
+            request_id=g.request_id,
+            error=str(exc),
+        )
+        return _error("schema_violation", "Extracted features violate features-v2", 422)
+
+    try:
+        frame = frame_from_features(features)
         prediction = int(model.predict(frame)[0])
+        score = None
+        if hasattr(model, "predict_proba"):
+            score = round(float(model.predict_proba(frame)[0][1]), 4)
     except Exception as exc:
         _log_event(
             "prediction_failed",
@@ -260,7 +290,14 @@ def predict():
         )
         return _error("internal_error", "Analysis failed", 500)
 
-    return jsonify({"prediction": prediction})
+    return jsonify(
+        {
+            "prediction": prediction,
+            "score": score,
+            "model": settings.model_name,
+            "reasons": explain(features),
+        }
+    )
 
 
 if __name__ == "__main__":

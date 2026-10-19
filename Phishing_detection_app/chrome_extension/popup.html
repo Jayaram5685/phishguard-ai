@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Phishing Detector</title>
+  <title>PhishGuard</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -155,6 +155,20 @@
       max-height: 40px;
       overflow-y: auto;
     }
+
+    .reasons {
+      margin: 10px 0 0;
+      padding: 0 0 0 16px;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: left;
+      line-height: 1.55;
+      word-break: break-word;
+    }
+
+    .reasons:empty {
+      display: none;
+    }
     
     /* Animations */
     @keyframes pulse {
@@ -184,7 +198,7 @@
   <div class="container">
     <div class="card">
       <div class="icon-container" id="main-icon">🛡️</div>
-      <h2>Secure Web</h2>
+      <h2>PhishGuard</h2>
       <p class="subtitle">AI-powered phishing detection</p>
 
       <button id="checkBtn">Scan Current Page</button>
@@ -192,6 +206,7 @@
       <div id="result-container">
         <div id="result"></div>
         <div id="urlDisplay" class="url-box"></div>
+        <ul id="reasons" class="reasons"></ul>
       </div>
     </div>
   </div>
