@@ -30,9 +30,11 @@ curl -s https://phishguard-api-ttou.onrender.com/predict \
 
 Two operational notes for the free instance: it **sleeps after ~15 minutes** of
 inactivity (first request then pays a ~50 s cold start — a `.github/workflows/warmup.yml`
-schedule pings `/health` to keep it warm), and it is sized at 512 MB / 0.1 CPU,
-which is why the blueprint runs a single gunicorn worker with
-`MODEL_NAME=lightgbm.joblib` as the drop-in lever if latency ever matters.
+schedule pings `/health` to keep it warm, which consumes ~730 of the 750 free
+instance-hours a month, so the account has room for this service only), and it
+is sized at 512 MB / 0.1 CPU, which is why the blueprint runs a single gunicorn
+worker with `MODEL_NAME=lightgbm.joblib` as the drop-in lever if latency ever
+matters.
 
 End-to-end verification against a deployment:
 
