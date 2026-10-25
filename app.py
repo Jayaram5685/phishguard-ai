@@ -30,7 +30,7 @@ import uuid
 from urllib.parse import urlsplit
 
 import joblib
-from flask import Flask, Response, g, jsonify, request
+from flask import Flask, Response, g, jsonify, render_template, request
 from flask_cors import CORS
 from werkzeug.exceptions import HTTPException
 
@@ -215,9 +215,7 @@ def _handle_unexpected_error(exc: Exception):
 
 @app.route("/", methods=["GET"])
 def home():
-    return jsonify(
-        {"status": "API is running. Send a POST request to /predict to use the model."}
-    )
+    return render_template("index.html")
 
 
 @app.route("/health", methods=["GET"])

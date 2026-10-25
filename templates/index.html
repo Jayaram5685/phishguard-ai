@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PhishGuard AI — Real-Time Phishing Detection</title>
+  <meta name="description" content="AI-powered phishing website detection. Scan any URL instantly to check if it's safe or a phishing attempt. Powered by machine learning.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Animated background orbs -->
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <polyline points="9 12 11 14 15 10" style="stroke:#10B981"/>
+          </svg>
+        </div>
+        <span class="logo-text">PhishGuard <span class="logo-ai">AI</span></span>
+      </div>
+      <nav class="nav-links">
+        <a href="#how-it-works">How It Works</a>
+        <a href="#features">Features</a>
+        <a href="https://github.com/Jayaram5685/phishguard-ai" target="_blank" class="github-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <main class="hero">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        AI-Powered Protection
+      </div>
+      <h1>Detect Phishing Websites<br><span class="gradient-text">Before They Strike</span></h1>
+      <p class="hero-subtitle">
+        Scan any URL in real-time using machine learning. Get instant verdicts with
+        explainable reasons — not a black-box yes/no.
+      </p>
+
+      <!-- Scanner Card -->
+      <div class="scanner-card" id="scanner">
+        <div class="scanner-input-row">
+          <div class="input-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </div>
+          <input
+            type="url"
+            id="urlInput"
+            placeholder="Enter a URL to scan (e.g. http://suspicious-site.com/login)"
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button id="scanBtn" onclick="scanURL()">
+            <span class="btn-text">Scan URL</span>
+            <span class="btn-loader" id="btnLoader">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <path d="M12 2v4m0 12v4m-7.07-3.93l2.83-2.83m8.48-8.48l2.83-2.83M2 12h4m12 0h4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83"/>
+              </svg>
+            </span>
+          </button>
+        </div>
+
+        <!-- Result Area -->
+        <div id="resultArea" class="result-area hidden">
+          <div class="result-header" id="resultHeader">
+            <div class="result-icon" id="resultIcon"></div>
+            <div class="result-info">
+              <div class="result-label" id="resultLabel"></div>
+              <div class="result-score" id="resultScore"></div>
+            </div>
+          </div>
+          <div class="result-url" id="resultUrl"></div>
+          <div class="reasons-section" id="reasonsSection">
+            <div class="reasons-title">Analysis Details</div>
+            <ul class="reasons-list" id="reasonsList"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat">
+          <div class="stat-value">4</div>
+          <div class="stat-label">ML Models</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <div class="stat-value">15</div>
+          <div class="stat-label">Features Analyzed</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <div class="stat-value">85%+</div>
+          <div class="stat-label">ROC-AUC</div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <div class="stat-value">&lt;200ms</div>
+          <div class="stat-label">Avg Response</div>
+        </div>
+      </div>
+    </main>
+
+    <!-- How It Works -->
+    <section class="section" id="how-it-works">
+      <h2 class="section-title">How It Works</h2>
+      <div class="steps-grid">
+        <div class="step-card">
+          <div class="step-number">01</div>
+          <div class="step-icon">🔗</div>
+          <h3>Submit URL</h3>
+          <p>Paste any suspicious URL into the scanner. We validate and sanitize the input before processing.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">02</div>
+          <div class="step-icon">🔍</div>
+          <h3>Feature Extraction</h3>
+          <p>We extract 15 features: URL syntax patterns, DNS/WHOIS records, and page behavior signals.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">03</div>
+          <div class="step-icon">🤖</div>
+          <h3>ML Classification</h3>
+          <p>A trained Random Forest model scores the URL. We also ship XGBoost, LightGBM, and Logistic Regression.</p>
+        </div>
+        <div class="step-card">
+          <div class="step-number">04</div>
+          <div class="step-icon">✅</div>
+          <h3>Explainable Verdict</h3>
+          <p>Get a verdict with probability score and human-readable reasons — never a black-box answer.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section" id="features">
+      <h2 class="section-title">Features</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3>SSRF Protection</h3>
+          <p>Outbound fetching is guarded against server-side request forgery — internal resources are never exposed.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Rate Limiting</h3>
+          <p>Sliding-window rate limiting keyed on real client IP prevents abuse while serving legitimate users.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔐</div>
+          <h3>Hardened API</h3>
+          <p>Security headers, strict CORS, structured errors, and no stack traces exposed — ever.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Honest Evaluation</h3>
+          <p>Domain-disjoint splits, Wilson confidence intervals, and explicit baselines — no inflated metrics.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🧩</div>
+          <h3>Chrome Extension</h3>
+          <p>One-click scan from the browser toolbar. Premium dark UI with real-time verdict display.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">🔄</div>
+          <h3>Reproducible</h3>
+          <p>train_model.py --check refits all 24 experiments and asserts committed metrics reproduce within 1e-6.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- API Section -->
+    <section class="section" id="api">
+      <h2 class="section-title">API Reference</h2>
+      <div class="api-card">
+        <div class="api-method">POST</div>
+        <code class="api-endpoint">/predict</code>
+        <div class="api-desc">Analyze a URL for phishing</div>
+        <div class="code-block">
+          <div class="code-header">
+            <span>Request</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code>curl -X POST /predict \
+  -H "Content-Type: application/json" \
+  -d '{"url": "http://suspicious-site.com/login"}'</code></pre>
+        </div>
+        <div class="code-block">
+          <div class="code-header">
+            <span>Response</span>
+          </div>
+          <pre><code>{
+  "prediction": 1,
+  "score": 0.9631,
+  "model": "random_forest.joblib",
+  "reasons": [
+    "Hostname contains '-' (lookalike-domain trick)",
+    "Domain is under 6 months old",
+    "Domain expires in under 6 months"
+  ]
+}</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-logo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          PhishGuard AI
+        </div>
+        <p>Built by <a href="https://github.com/Jayaram5685" target="_blank">Jayaram5685</a> · Open Source on <a href="https://github.com/Jayaram5685/phishguard-ai" target="_blank">GitHub</a></p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    async function scanURL() {
+      const input = document.getElementById('urlInput');
+      const btn = document.getElementById('scanBtn');
+      const loader = document.getElementById('btnLoader');
+      const resultArea = document.getElementById('resultArea');
+      const url = input.value.trim();
+
+      if (!url) {
+        input.focus();
+        input.classList.add('shake');
+        setTimeout(() => input.classList.remove('shake'), 500);
+        return;
+      }
+
+      // Show loading
+      btn.disabled = true;
+      btn.classList.add('loading');
+      resultArea.classList.add('hidden');
+
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+          showResult('error', url, data.error.message, null, []);
+        } else if (data.analysis === 'whitelisted') {
+          showResult('safe', url, `Known-safe domain: ${data.domain}`, null, []);
+        } else if (data.analysis === 'skipped') {
+          showResult('info', url, 'Not applicable to this address type', null, []);
+        } else if (data.prediction === 1) {
+          showResult('phishing', url, 'Phishing Detected!', data.score, data.reasons || []);
+        } else {
+          showResult('safe', url, 'Website Appears Safe', data.score, data.reasons || []);
+        }
+      } catch (err) {
+        showResult('error', url, 'Could not reach the API. Please try again.', null, []);
+      }
+
+      btn.disabled = false;
+      btn.classList.remove('loading');
+    }
+
+    function showResult(type, url, label, score, reasons) {
+      const resultArea = document.getElementById('resultArea');
+      const resultIcon = document.getElementById('resultIcon');
+      const resultLabel = document.getElementById('resultLabel');
+      const resultScore = document.getElementById('resultScore');
+      const resultUrl = document.getElementById('resultUrl');
+      const reasonsList = document.getElementById('reasonsList');
+      const reasonsSection = document.getElementById('reasonsSection');
+      const resultHeader = document.getElementById('resultHeader');
+
+      // Reset
+      resultHeader.className = 'result-header';
+      resultArea.className = 'result-area';
+
+      const icons = {
+        phishing: '⚠️',
+        safe: '✅',
+        info: 'ℹ️',
+        error: '❌'
+      };
+
+      resultIcon.textContent = icons[type] || '❓';
+      resultLabel.textContent = label;
+      resultHeader.classList.add(`result-${type}`);
+      resultArea.classList.add(`border-${type}`);
+
+      if (score !== null && score !== undefined) {
+        resultScore.textContent = `Phishing probability: ${Math.round(score * 100)}%`;
+        resultScore.style.display = 'block';
+      } else {
+        resultScore.style.display = 'none';
+      }
+
+      resultUrl.textContent = url;
+
+      reasonsList.innerHTML = '';
+      if (reasons.length > 0) {
+        reasonsSection.style.display = 'block';
+        reasons.forEach(r => {
+          const li = document.createElement('li');
+          li.textContent = r;
+          reasonsList.appendChild(li);
+        });
+      } else {
+        reasonsSection.style.display = 'none';
+      }
+
+      resultArea.classList.remove('hidden');
+    }
+
+    function copyCode(btn) {
+      const code = btn.closest('.code-block').querySelector('code').textContent;
+      navigator.clipboard.writeText(code);
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    }
+
+    // Enter key to scan
+    document.getElementById('urlInput').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') scanURL();
+    });
+  </script>
+</body>
+</html>
