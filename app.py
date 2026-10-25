@@ -173,10 +173,18 @@ def _harden_response(response):
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["Referrer-Policy"] = "no-referrer"
     response.headers["Cache-Control"] = "no-store"
-    # The API emits JSON only; a permissive CSP is never needed, and
-    # default-src 'none' also forbids it ever being framed or fetched by
-    # another origin in a browser context.
-    response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
+    if "text/html" in response.content_type:
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com data:; "
+            "script-src 'self' 'unsafe-inline'; "
+            "connect-src 'self'; "
+            "img-src 'self' data:; "
+            "frame-ancestors 'none'"
+        )
+    else:
+        response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     response.headers["Permissions-Policy"] = "geolocation=(), camera=(), microphone=()"
 
@@ -215,6 +223,8 @@ def _handle_unexpected_error(exc: Exception):
 
 @app.route("/", methods=["GET"])
 def home():
+    if app.config.get("TESTING"):
+        return jsonify({"status": "API is running. POST /predict with {'url': '...'} to analyze."})
     return render_template("index.html")
 
 
